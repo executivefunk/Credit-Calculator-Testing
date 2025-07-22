@@ -383,9 +383,34 @@ select {
   <script>
 
     try {
+  document.addEventListener("DOMContentLoaded", () => {
+    populateWeekDropdowns();
+    document.getElementById("endWeek").value = "46";
+    displayCurrentDateAndWeek();
+
+    // Add checkbox event listeners
+    document.getElementById("skipThanksgiving").addEventListener("change", calculateCredits);
+    document.getElementById("skipWinter").addEventListener("change", calculateCredits);
+    document.getElementById("skipSpring").addEventListener("change", calculateCredits);
+
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById(`customSkip${i}`).addEventListener("change", calculateCredits);
+      document.getElementById(`customWeek${i}`).addEventListener("change", calculateCredits);
+    }
+
+    ["totalCredits", "startWeek", "endWeek"].forEach(id => {
+      document.getElementById(id).addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          calculateCredits();
+        }
+      });
+    });
+  });
 } catch (e) {
   alert("Script error: " + e.message);
 }
+
     let isSpanish = false;
     function getText(key) {
   const map = {
