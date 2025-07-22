@@ -383,34 +383,9 @@ select {
   <script>
 
     try {
-  document.addEventListener("DOMContentLoaded", () => {
-    populateWeekDropdowns();
-    document.getElementById("endWeek").value = "46";
-    displayCurrentDateAndWeek();
-
-    // Add checkbox event listeners
-    document.getElementById("skipThanksgiving").addEventListener("change", calculateCredits);
-    document.getElementById("skipWinter").addEventListener("change", calculateCredits);
-    document.getElementById("skipSpring").addEventListener("change", calculateCredits);
-
-    for (let i = 1; i <= 4; i++) {
-      document.getElementById(`customSkip${i}`).addEventListener("change", calculateCredits);
-      document.getElementById(`customWeek${i}`).addEventListener("change", calculateCredits);
-    }
-
-    ["totalCredits", "startWeek", "endWeek"].forEach(id => {
-      document.getElementById(id).addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          calculateCredits();
-        }
-      });
-    });
-  });
 } catch (e) {
   alert("Script error: " + e.message);
 }
-
     let isSpanish = false;
     function getText(key) {
   const map = {
@@ -492,11 +467,6 @@ select {
     "Weeks You Plan to Skip (Optional):": [
   "Weeks You Plan to Skip (Optional):",
   "Semanas que Planeas Omitir (Opcional):"
-],
-    "Skip Custom Week 1:": ["Skip Custom Week 1:", "Omitir Semana 1:"],
-"Skip Custom Week 2:": ["Skip Custom Week 2:", "Omitir Semana 2:"],
-"Skip Custom Week 3:": ["Skip Custom Week 3:", "Omitir Semana 3:"],
-"Skip Custom Week 4:": ["Skip Custom Week 4:", "Omitir Semana 4:"],
 ]
 
   };
@@ -1204,18 +1174,6 @@ distribution = [
   const skipBoxTitleEl = document.getElementById("skipBoxTitle");
 if (skipBoxTitleEl) {
   skipBoxTitleEl.textContent = getText("Weeks You Plan to Skip (Optional):");
-}
-
-      const skipCustomLabels = [
-  "Skip Custom Week 1:",
-  "Skip Custom Week 2:",
-  "Skip Custom Week 3:",
-  "Skip Custom Week 4:"
-];
-
-for (let i = 1; i <= 4; i++) {
-  const el = document.getElementById(`customSkipLabel${i}`);
-  if (el) el.textContent = getText(skipCustomLabels[i - 1]);
 }
 
   setTimeout(() => {
