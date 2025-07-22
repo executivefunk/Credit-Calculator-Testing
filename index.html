@@ -654,14 +654,30 @@ let storedPlan = {};
       const skipSpring = document.getElementById("skipSpring").checked;
 
       const customSkips = [];
-      for (let i = 1; i <= 4; i++) {
-        const cb = document.getElementById(`customSkip${i}`);
-        const sel = document.getElementById(`customWeek${i}`);
-        if (cb?.checked && sel?.value) {
-          const val = parseInt(sel.value);
-          if (!isNaN(val)) customSkips.push(val);
-        }
+const selectedWeeks = new Set();
+let duplicateFound = false;
+
+for (let i = 1; i <= 4; i++) {
+  const cb = document.getElementById(`customSkip${i}`);
+  const sel = document.getElementById(`customWeek${i}`);
+  if (cb?.checked && sel?.value) {
+    const val = parseInt(sel.value);
+    if (!isNaN(val)) {
+      if (selectedWeeks.has(val)) {
+        duplicateFound = true;
+      } else {
+        selectedWeeks.add(val);
+        customSkips.push(val);
       }
+    }
+  }
+}
+
+if (duplicateFound) {
+  document.getElementById("result").innerHTML = `<div class='warning'>You've selected the same week more than once in custom skip weeks. Each custom week must be different.</div>`;
+  return;
+}
+
 
       // Combine all skip weeks into one array
       const allSkips = [
@@ -864,8 +880,8 @@ if (totalWeeksD > weeksRemaining) {
   planDButton.title = "";
 }
 
-      document.getElementById("planButtons").style.display = "flex";
-            storedPlan = { 
+  document.getElementById("planButtons").style.display = "flex";
+  storedPlan = { 
         totalCredits, 
         startWeek, 
         endWeek, 
