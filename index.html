@@ -933,13 +933,16 @@ if (totalWeeksD > weeksRemaining) {
    function generatePlan(type) {
   const { totalCredits, startWeek, endWeek, oneCreditWeeks, skipWeeks } = storedPlan;
 
-  // Prepare the usable weeks excluding skipWeeks
-  let allWeeks = [];
-  for (let w = startWeek; w <= endWeek; w++) {
-    allWeeks.push({ week: w, skip: skipWeeks.includes(w) });
-  }
-  const usableWeeks = allWeeks.filter(w => !w.skip);
-  const usableWeekCount = usableWeeks.length;
+// Step 1: Mark all weeks with skip status
+let allWeeks = [];
+for (let w = startWeek; w <= endWeek; w++) {
+  const isSkipped = skipWeeks.includes(w);
+  allWeeks.push({ week: w, skip: isSkipped });
+}
+
+// Step 2: Pull only usable weeks (not skipped) for assigning credits
+const usableWeeks = allWeeks.filter(w => !w.skip);
+const usableWeekCount = usableWeeks.length;
 
   // Determine credit distribution per plan
   let distribution = [];
@@ -991,7 +994,14 @@ distribution = [
   // Apply distribution to usable weeks
   usableWeeks.forEach((w, i) => w.credits = distribution[i] ?? 0);
   // Add 0 credits for skipped weeks
-  allWeeks = allWeeks.map(w => w.skip ? { ...w, credits: 0 } : usableWeeks.shift());
+  allWeeks = allWeeks.map(w => {
+  if (w.skip) {
+    return { ...w, credits: 0 };
+  } else {
+    const next = usableWeeks.shift();
+    return { ...w, credits: next?.credits ?? 0 };
+  }
+});
 
   // Render table
   const table = `
@@ -1206,6 +1216,10 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("skipThanksgiving").addEventListener("change", calculateCredits);
   document.getElementById("skipWinter").addEventListener("change", calculateCredits);
   document.getElementById("skipSpring").addEventListener("change", calculateCredits);
+  for (let i = 1; i <= 4; i++) {
+  document.getElementById(`customSkip${i}`).addEventListener("change", calculateCredits);
+  document.getElementById(`customWeek${i}`).addEventListener("change", calculateCredits);
+}
 
   // ✅ Add Enter key triggers
   ["totalCredits", "startWeek", "endWeek"].forEach(id => {
