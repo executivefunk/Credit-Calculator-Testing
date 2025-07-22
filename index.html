@@ -1038,6 +1038,7 @@ distribution = [
         const rowClass = w.skip ? ' class="skip-row"' : '';
         const row = `<td>${w.week}</td><td>${dateRanges[w.week]}</td><td>${w.credits}</td>`;
         const cells = Array(4).fill(`<td><div class="credit-cell"><input type="checkbox" /> ________</div></td>`).join('');
+        const forceBreak = w.week === 46 ? ' class="force-page-break skip-row"' : rowClass;
         return `<tr${rowClass}>${row}${cells}</tr>`;
       }).join('')}
     </table></body></html>
