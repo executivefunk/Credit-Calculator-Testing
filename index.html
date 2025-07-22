@@ -247,6 +247,10 @@ select {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+  @media print {
+  .force-page-break {
+    page-break-before: always !important;
+  }
 }
 </style>
 </head>
