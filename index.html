@@ -359,6 +359,26 @@ select {
       <label for="customSkip4">Skip Custom Week 4:</label>
       <select id="customWeek4"></select>
       </div>
+      <div class="holiday-option">
+  <input type="checkbox" id="customSkip1">
+  <label for="customSkip1"><span id="customSkipLabel1">Skip Custom Week 1:</span></label>
+  <select id="customWeek1"></select>
+</div>
+<div class="holiday-option">
+  <input type="checkbox" id="customSkip2">
+  <label for="customSkip2"><span id="customSkipLabel2">Skip Custom Week 2:</span></label>
+  <select id="customWeek2"></select>
+</div>
+<div class="holiday-option">
+  <input type="checkbox" id="customSkip3">
+  <label for="customSkip3"><span id="customSkipLabel3">Skip Custom Week 3:</span></label>
+  <select id="customWeek3"></select>
+</div>
+<div class="holiday-option">
+  <input type="checkbox" id="customSkip4">
+  <label for="customSkip4"><span id="customSkipLabel4">Skip Custom Week 4:</span></label>
+  <select id="customWeek4"></select>
+</div>
     </div>
 
     <button onclick="calculateCredits()" id="calculateBtn" style="margin-top: 20px; width: 100%; padding: 10px;">Calculate</button>
@@ -467,6 +487,11 @@ select {
     "Weeks You Plan to Skip (Optional):": [
   "Weeks You Plan to Skip (Optional):",
   "Semanas que Planeas Omitir (Opcional):"
+],
+    "Skip Custom Week 1:": ["Skip Custom Week 1:", "Omitir Semana 1:"],
+"Skip Custom Week 2:": ["Skip Custom Week 2:", "Omitir Semana 2:"],
+"Skip Custom Week 3:": ["Skip Custom Week 3:", "Omitir Semana 3:"],
+"Skip Custom Week 4:": ["Skip Custom Week 4:", "Omitir Semana 4:"],
 ]
 
   };
@@ -1174,6 +1199,18 @@ distribution = [
   const skipBoxTitleEl = document.getElementById("skipBoxTitle");
 if (skipBoxTitleEl) {
   skipBoxTitleEl.textContent = getText("Weeks You Plan to Skip (Optional):");
+}
+
+      const skipCustomLabels = [
+  "Skip Custom Week 1:",
+  "Skip Custom Week 2:",
+  "Skip Custom Week 3:",
+  "Skip Custom Week 4:"
+];
+
+for (let i = 1; i <= 4; i++) {
+  const el = document.getElementById(`customSkipLabel${i}`);
+  if (el) el.textContent = getText(skipCustomLabels[i - 1]);
 }
 
   setTimeout(() => {
