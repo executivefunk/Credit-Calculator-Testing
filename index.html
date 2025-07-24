@@ -219,6 +219,31 @@ select {
     line-height: 1.1em;
   }
 }
+  #printButton {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #317efb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  transition: background 0.3s;
+}
+
+#printButton:hover {
+  background: #245ecb;
+}
+
+@media print {
+  #printButton {
+    display: none;
+  }
+}
 
 /* ✅ This MUST be outside the above block */
 @media print {
@@ -295,6 +320,8 @@ select {
     </div>
   </div>
 </div>
+  
+  <button onclick="window.print()" id="printButton" title="Print this page">🖨️</button>
 
   <!-- Actual calculator container (hidden at first) -->
   <div class="container">
