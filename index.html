@@ -733,8 +733,9 @@ if (duplicateFound) {
       ];
 
       // Only count unique skips
-      const uniqueSkips = [...new Set(allSkips)];
-      let weeksRemaining = endWeek - startWeek + 1 - uniqueSkips.length;
+      // Only count unique skip weeks that fall within the selected planning window
+const uniqueSkips = [...new Set(allSkips)].filter(week => week >= startWeek && week <= endWeek);
+let weeksRemaining = endWeek - startWeek + 1 - uniqueSkips.length;
 
       if (!totalCredits || weeksRemaining <= 0) {
         document.getElementById("result").innerText = "Please enter valid numbers.";
