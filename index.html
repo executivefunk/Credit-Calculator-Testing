@@ -1050,30 +1050,103 @@ distribution = [
 
   // Render table
   const table = `
-    <html><head><title>Plan ${type} Credit Tracker</title>
-    <style>
-      body { font-family: Arial; padding: 20px; }
-      table { border-collapse: collapse; width: 100%; }
-      td, th { border: 1px solid #ccc; padding: 8px; text-align: center; }
-      input[type="checkbox"] { transform: scale(1.2); margin-right: 6px; }
-      .credit-cell { display: flex; align-items: center; gap: 6px; }
-      .skip-row { background-color: #ffd6d6; } /* red highlight */
-    </style></head><body>
-    <h2>
+<html><head><title>Plan ${type} Credit Tracker</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    td, th {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 6px;
+    }
+    .credit-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .skip-row {
+      background-color: #ffd6d6;
+    }
+    /* ✅ Print Button Styling */
+    #printBtn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  padding: 10px 16px;
+  font-size: 1.1em;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#printBtn:hover {
+  background-color: #555;
+  color: white;
+}
+
+@media print {
+  #printBtn {
+    display: none;
+  }
+
+  #printNotice {
+    display: none;
+  }
+}
+  </style>
+</head><body>
+
+<!-- ✅ Print Button -->
+<button id="printBtn" onclick="window.print()" title="Print this page">Print</button>
+
+<div id="printNotice" style="
+  margin-top: 70px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.95em;
+  max-width: 700px;
+">
+  <strong>Print Tips:</strong> For best results, set your printer settings to:
+  <ul style="margin-top: 6px; padding-left: 20px;">
+    <li>📄 <strong>Margins:</strong> Minimum</li>
+    <li>🎨 <strong>Enable Background Graphics</strong></li>
+  </ul>
+</div>
+
+<h2>
   Credit Tracker – Plan ${type}
   <span style="font-weight: normal; font-size: 0.8em;"> - (You can still complete credits during "0" credit weeks if desired)</span>
 </h2>
-    <table>
-      <tr><th>Week</th><th>Date Range</th><th>Credits</th><th colspan="4">Credits</th></tr>
-      ${allWeeks.map(w => {
-        const rowClass = w.skip ? ' class="skip-row"' : '';
-        const row = `<td>${w.week}</td><td>${dateRanges[w.week]}</td><td>${w.credits}</td>`;
-        const cells = Array(4).fill(`<td><div class="credit-cell"><input type="checkbox" /> ________</div></td>`).join('');
-        const forceBreak = w.week === 46 ? ' class="force-page-break skip-row"' : rowClass;
-        return `<tr${rowClass}>${row}${cells}</tr>`;
-      }).join('')}
-    </table></body></html>
-  `;
+
+<table>
+  <tr><th>Week</th><th>Date Range</th><th>Credits</th><th colspan="4">Credits</th></tr>
+  ${allWeeks.map(w => {
+    const rowClass = w.skip ? ' class="skip-row"' : '';
+    const row = `<td>${w.week}</td><td>${dateRanges[w.week]}</td><td>${w.credits}</td>`;
+    const cells = Array(4).fill(`<td><div class="credit-cell"><input type="checkbox" /> ________</div></td>`).join('');
+    return `<tr${rowClass}>${row}${cells}</tr>`;
+  }).join('')}
+</table>
+</body></html>
+`;
 
   const printWin = window.open("", "_blank");
   printWin.document.write(table);
