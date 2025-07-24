@@ -1031,7 +1031,10 @@ distribution = [
       .credit-cell { display: flex; align-items: center; gap: 6px; }
       .skip-row { background-color: #ffd6d6; } /* red highlight */
     </style></head><body>
-    <h2>Credit Tracker – Plan ${type} - (You can still complete credits during "0" credit weeks)</h2>
+    <h2>
+  Credit Tracker – Plan ${type}
+  <span style="font-weight: normal; font-size: 0.8em;">(You can still complete credits during 0 credit weeks)</span>
+</h2>
     <table>
       <tr><th>Week</th><th>Date Range</th><th>Credits</th><th colspan="4">Credits</th></tr>
       ${allWeeks.map(w => {
