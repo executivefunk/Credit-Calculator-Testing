@@ -863,7 +863,23 @@ if (planBWeeks > weeksRemaining) {
   planBNote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", diff)}</span>`;
 }
 planBNote += `</li>`;
-      let planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("plan_c_affordable_1s").replace("{count}", oneCreditWeeks)}</li>`;
+      let planCText = "";
+
+if (weeklyAvgNum < 2.0) {
+  planCText = isSpanish
+    ? `Puedes tener hasta ${oneCreditWeeks} semana(s) de 1 crédito si el resto promedia 2 o más`
+    : `You can afford up to ${oneCreditWeeks} week(s) at 1 credit if the rest average 2+`;
+} else if (weeklyAvgNum === 2.0) {
+  planCText = isSpanish
+    ? `Puedes tener 0 semana(s) de 1 crédito si el resto promedia 2 o más`
+    : `You can afford 0 week(s) at 1 credit if the rest average 2+`;
+} else {
+  planCText = isSpanish
+    ? `Puedes tener 0 semana(s) de 1 crédito`
+    : `You can afford 0 week(s) at 1 credit`;
+}
+
+let planCNote = `<li><strong>${getText("Plan C")}:</strong> ${planCText}</li>`;
 
       const result = `
   <p><strong>${getText("Credits Needed")}:</strong> ${totalCredits}</p>
