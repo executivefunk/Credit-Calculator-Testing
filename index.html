@@ -484,7 +484,10 @@ select {
   "You can afford up to {count} week(s) at 1 credit if the rest average 2+",
   "Puedes tener hasta {count} semana(s) de 1 crédito si el resto promedia 2 o más"
 ],
-
+"1-credit weeks not possible (Exceeds weeks left)": [
+  "1-credit weeks not possible (Exceeds weeks left)",
+  "No se permiten semanas de 1 crédito (Excede las semanas disponibles)"
+],
 "plan_d_header": [
   "Plan D (Special Approval Needed): 3/week for 8 weeks (to unlock 4 credits a week max)",
   "Plan D (Se Requiere Aprobación Especial): 3/semana por 8 semanas (para desbloquear hasta 4 créditos por semana)"
@@ -814,26 +817,36 @@ planDNote += `</li>`;
 if (planAWeeks > weeksRemaining) {
   const weeksOver = planAWeeks - weeksRemaining;
   weeksOf3 = weeksOver * 2;
-  const creditsFrom3s = weeksOf3 * 3;
-  const creditsRemaining = totalCredits - creditsFrom3s;
-  const weeksOf2 = Math.floor(creditsRemaining / 2);
-  const leftover = creditsRemaining % 2;
-  const weeksOf1 = leftover > 0 ? 1 : 0;
 
-  const segments = [];
-  if (weeksOf3 > 0) segments.push(
-    getText("weeks_of_x_credits").replace("{count}", weeksOf3).replace("{credit}", 3)
-  );
-  if (weeksOf2 > 0) segments.push(
-    getText("weeks_of_x_credits").replace("{count}", weeksOf2).replace("{credit}", 2)
-  );
-  if (weeksOf1 > 0) segments.push(
-    getText("weeks_of_x_credits").replace("{count}", 1).replace("{credit}", 1)
-  );
+  if (weeksOf3 >= planBWeeks) {
+    // ✅ Simplified version
+    planANote = `<li><strong>${getText("Plan A")}:</strong> ` +
+      getText("credits_per_week_for_weeks")
+        .replace("{x}", "2")
+        .replace("{y}", planAWeeks) +
+      ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", weeksOver)}</span></li>`;
+  } else {
+    // Fallback breakdown (same as before)
+    const creditsFrom3s = weeksOf3 * 3;
+    const creditsRemaining = totalCredits - creditsFrom3s;
+    const weeksOf2 = Math.floor(creditsRemaining / 2);
+    const leftover = creditsRemaining % 2;
+    const weeksOf1 = leftover > 0 ? 1 : 0;
 
-  planANote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", weeksOver)}</span><br>`;
-  planANote += `<em>${getText("you_need_segments").replace("{segments}", segments.join(" and "))}</em>`;
-}
+    const segments = [];
+    if (weeksOf3 > 0) segments.push(
+      getText("weeks_of_x_credits").replace("{count}", weeksOf3).replace("{credit}", 3)
+    );
+    if (weeksOf2 > 0) segments.push(
+      getText("weeks_of_x_credits").replace("{count}", weeksOf2).replace("{credit}", 2)
+    );
+    if (weeksOf1 > 0) segments.push(
+      getText("weeks_of_x_credits").replace("{count}", 1).replace("{credit}", 1)
+    );
+
+    planANote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", weeksOver)}</span><br>`;
+    planANote += `<em>${getText("you_need_segments").replace("{segments}", segments.join(" and "))}</em>`;
+  }
 planANote += `</li>`;
 
       let planBNote = `<li><strong>${getText("Plan B")}:</strong> ` +
@@ -851,7 +864,12 @@ if (planBWeeks > weeksRemaining) {
   planBNote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", diff)}</span>`;
 }
 planBNote += `</li>`;
-      let planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("plan_c_affordable_1s").replace("{count}", oneCreditWeeks)}</li>`;
+      const weeksRequiredForPlanC = totalCredits - oneCreditWeeks; // the 2+/week weeks
+if (weeksRequiredForPlanC > weeksRemaining) {
+  planCNote = `<li><strong>${getText("Plan C")}:</strong> <span style="color: red;">1-credit weeks not possible (Exceeds weeks left)</span></li>`;
+} else {
+  planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("plan_c_affordable_1s").replace("{count}", oneCreditWeeks)}</li>`;
+}
 
       const result = `
   <p><strong>${getText("Credits Needed")}:</strong> ${totalCredits}</p>
