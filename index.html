@@ -811,6 +811,8 @@ planDNote += `</li>`;
     .replace("{x}", "2")
     .replace("{y}", planAWeeks);
 
+const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+
 if (planAWeeks > weeksRemaining) {
   const weeksOver = planAWeeks - weeksRemaining;
   weeksOf3 = weeksOver * 2;
@@ -818,6 +820,7 @@ if (planAWeeks > weeksRemaining) {
   planANote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", weeksOver)}</span>`;
 
   if (weeksOf3 < planBWeeks) {
+    // ✅ Fallback is viable
     const creditsFrom3s = weeksOf3 * 3;
     const creditsRemaining = totalCredits - creditsFrom3s;
     const weeksOf2 = Math.floor(creditsRemaining / 2);
@@ -825,31 +828,21 @@ if (planAWeeks > weeksRemaining) {
     const weeksOf1 = leftover > 0 ? 1 : 0;
 
     const segments = [];
-    if (weeksOf3 > 0) segments.push(
-      getText("weeks_of_x_credits").replace("{count}", weeksOf3).replace("{credit}", 3)
-    );
-    if (weeksOf2 > 0) segments.push(
-      getText("weeks_of_x_credits").replace("{count}", weeksOf2).replace("{credit}", 2)
-    );
-    if (weeksOf1 > 0) segments.push(
-      getText("weeks_of_x_credits").replace("{count}", 1).replace("{credit}", 1)
-    );
+    if (weeksOf3 > 0) segments.push(getText("weeks_of_x_credits").replace("{count}", weeksOf3).replace("{credit}", 3));
+    if (weeksOf2 > 0) segments.push(getText("weeks_of_x_credits").replace("{count}", weeksOf2).replace("{credit}", 2));
+    if (weeksOf1 > 0) segments.push(getText("weeks_of_x_credits").replace("{count}", 1).replace("{credit}", 1));
 
     planANote += `<br><em>${getText("you_need_segments").replace("{segments}", segments.join(" and "))}</em>`;
 
-    // ✅ Fallback is viable — enable button
-    const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
     planAButton.disabled = false;
     planAButton.title = "";
   } else {
-    // ❌ Fallback too heavy — disable button
-    const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+    // ❌ Fallback not viable
     planAButton.disabled = true;
     planAButton.title = "Disabled: Plan A fallback uses too many 3-credit weeks — not realistic.";
   }
 } else {
-  // ✅ 2 credits/week fits — no fallback needed
-  const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+  // ✅ Standard Plan A fits
   planAButton.disabled = false;
   planAButton.title = "";
 }
