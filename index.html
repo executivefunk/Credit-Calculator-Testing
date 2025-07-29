@@ -843,6 +843,7 @@ if (planAWeeks > weeksRemaining) {
     planANote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", weeksOver)}</span><br>`;
     planANote += `<em>${getText("you_need_segments").replace("{segments}", segments.join(" and "))}</em>`;
   }
+}
 planANote += `</li>`;
 
       let planBNote = `<li><strong>${getText("Plan B")}:</strong> ` +
