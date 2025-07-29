@@ -836,7 +836,22 @@ if (planAWeeks > weeksRemaining) {
     );
 
     planANote += `<br><em>${getText("you_need_segments").replace("{segments}", segments.join(" and "))}</em>`;
+
+    // ✅ Fallback is viable — enable button
+    const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+    planAButton.disabled = false;
+    planAButton.title = "";
+  } else {
+    // ❌ Fallback too heavy — disable button
+    const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+    planAButton.disabled = true;
+    planAButton.title = "Disabled: Plan A fallback uses too many 3-credit weeks — not realistic.";
   }
+} else {
+  // ✅ 2 credits/week fits — no fallback needed
+  const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
+  planAButton.disabled = false;
+  planAButton.title = "";
 }
 planANote += `</li>`;
 
@@ -889,16 +904,6 @@ planBNote += `</li>`;
   planCNote,
   planDNote
 };
-
-      // Disable Plan A button if weeksOf3 exceeds weeksRemaining
-const planAButton = document.querySelector('button[onclick="generatePlan(\'A\')"]');
-if (typeof weeksOf3 !== 'undefined' && weeksOf3 > weeksRemaining) {
-  planAButton.disabled = true;
-  planAButton.title = "Disabled: Not enough time — too many 3-credit weeks required.";
-} else {
-  planAButton.disabled = false;
-  planAButton.title = "";
-}
 
       // Disable Plan C button if Plan A exceeds weeks
 const planCButton = document.querySelector('button[onclick="generatePlan(\'C\')"]');
