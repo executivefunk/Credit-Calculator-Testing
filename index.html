@@ -863,12 +863,7 @@ if (planBWeeks > weeksRemaining) {
   planBNote += ` <span style="color: red;">${getText("exceeds_weeks_by").replace("{z}", diff)}</span>`;
 }
 planBNote += `</li>`;
-      const planCWeeksNeeded = (weeksRemaining - oneCreditWeeks) + oneCreditWeeks;
-if (planCWeeksNeeded > weeksRemaining) {
-  planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("weeks_of_x_credits").replace("{count}", oneCreditWeeks).replace("{credit}", 1)}</li>`;
-} else {
-  planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("plan_c_affordable_1s").replace("{count}", oneCreditWeeks)}</li>`;
-}
+      let planCNote = `<li><strong>${getText("Plan C")}:</strong> ${getText("plan_c_affordable_1s").replace("{count}", oneCreditWeeks)}</li>`;
 
       const result = `
   <p><strong>${getText("Credits Needed")}:</strong> ${totalCredits}</p>
