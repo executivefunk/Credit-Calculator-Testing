@@ -640,6 +640,15 @@ const weeks = [
     document.getElementById("skipThanksgiving").checked = false;
     document.getElementById("skipWinter").checked = false;
     document.getElementById("skipSpring").checked = false;
+
+    // ✅ Add this block to also reset custom skip checkboxes
+    for (let i = 1; i <= 4; i++) {
+      const cb = document.getElementById(`customSkip${i}`);
+      const sel = document.getElementById(`customWeek${i}`);
+      if (cb) cb.checked = false;
+      if (sel) sel.selectedIndex = 0;
+    }
+
     document.getElementById("result").innerHTML = "";
     document.getElementById("planButtons").style.display = "none";
     lastResultData = null;
