@@ -1339,13 +1339,10 @@ if (skipBoxTitleEl) {
   skipBoxTitleEl.textContent = getText("Weeks You Plan to Skip (Optional):");
 }
 
-  setTimeout(() => {
-    populateWeekDropdowns();
-    document.getElementById("endWeek").value = "46";
-  }, 0);
-
-  renderResult();
-  displayCurrentDateAndWeek();
+  populateWeekDropdowns();
+document.getElementById("endWeek").value = "46";
+displayCurrentDateAndWeek(); // <-- sets startWeek to the current week
+renderResult();
 }
     
     function toggleLanguage() {
@@ -1381,12 +1378,10 @@ if (skipBoxTitleEl) {
   }
 
   // ✅ Refresh dropdowns with a small delay
-  setTimeout(() => {
-    populateWeekDropdowns();
-    document.getElementById("endWeek").value = "46";
-  }, 0);
-    renderResult();  // ✅ This goes here to refresh output language
-    displayCurrentDateAndWeek(); // ✅ Refresh current week label in the new language
+  populateWeekDropdowns();
+document.getElementById("endWeek").value = "46";
+displayCurrentDateAndWeek(); // <-- sets startWeek to the current week
+renderResult();
 }
 document.addEventListener("DOMContentLoaded", () => {
   populateWeekDropdowns();
