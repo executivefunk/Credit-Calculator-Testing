@@ -1100,9 +1100,29 @@ distribution = [
     if (rem > 0) distribution.push(rem);
   }
   if (type === 'C') {
-    const twoWeeks = usableWeekCount - oneCreditWeeks;
-    distribution = [...Array(twoWeeks).fill(2), ...Array(oneCreditWeeks).fill(1)];
+  // Recompute with usableWeekCount (skips already removed)
+  const W = usableWeekCount;
+  const C = totalCredits;
+
+  if (C <= W) {
+    // C weeks @1, (W - C) weeks @0
+    distribution = [
+      ...Array(C).fill(1),
+      ...Array(W - C).fill(0)
+    ];
+  } else if (C <= 2 * W) {
+    // Base 1 each → W credits; need (C - W) extra +1's → those weeks become 2
+    const extras = C - W;                  // number of 2-credit weeks
+    const ones   = W - extras;             // remaining 1-credit weeks
+    distribution = [
+      ...Array(extras).fill(2),
+      ...Array(ones).fill(1)
+    ];
+  } else {
+    // Not feasible under Plan C (cap is 2 per week). Fill with 2's so the table is honest.
+    distribution = Array(W).fill(2);
   }
+}
   if (type === 'D') {
     const part1 = Array(8).fill(3);
     const rem = totalCredits - 24;
