@@ -882,14 +882,33 @@ if (planBWeeks > weeksRemaining) {
 planBNote += `</li>`;
       let planCText = "";
 
-if (weeklyAvgNum < 2.0) {
+// ✅ Correct Plan C math:
+// W = weeksRemaining (usable weeks), C = totalCredits
+// If C <= W: we can do C weeks @1 and leave (W - C) weeks @0
+// If W < C <= 2W: we can do (2W - C) weeks @1 and the rest @2
+// If C > 2W: Plan C not feasible (0 weeks @1)
+let oneCreditWeeks = 0;
+if (totalCredits <= weeksRemaining) {
+  oneCreditWeeks = totalCredits;
+} else if (totalCredits <= 2 * weeksRemaining) {
+  oneCreditWeeks = (2 * weeksRemaining) - totalCredits;
+} else {
+  oneCreditWeeks = 0;
+}
+
+// ✅ Text rules:
+// - If C <= W  → "You can afford {C} week(s) at 1 credit"  (no clause)
+// - If W < C <= 2W → "You can afford up to {oneCreditWeeks} week(s) at 1 credit if the rest average 2+"
+// - If C > 2W → "You can afford 0 week(s) at 1 credit"
+let planCText = "";
+if (totalCredits <= weeksRemaining) {
+  planCText = isSpanish
+    ? `Puedes tener ${oneCreditWeeks} semana(s) de 1 crédito`
+    : `You can afford ${oneCreditWeeks} week(s) at 1 credit`;
+} else if (totalCredits <= 2 * weeksRemaining) {
   planCText = isSpanish
     ? `Puedes tener hasta ${oneCreditWeeks} semana(s) de 1 crédito si el resto promedia 2 o más`
     : `You can afford up to ${oneCreditWeeks} week(s) at 1 credit if the rest average 2+`;
-} else if (weeklyAvgNum === 2.0) {
-  planCText = isSpanish
-    ? `Puedes tener 0 semana(s) de 1 crédito si el resto promedia 2 o más`
-    : `You can afford 0 week(s) at 1 credit if the rest average 2+`;
 } else {
   planCText = isSpanish
     ? `Puedes tener 0 semana(s) de 1 crédito`
@@ -955,9 +974,9 @@ if (dualEnrollmentWeeklyAvg <= 1.5) {
 
       // Disable Plan C button if Plan A exceeds weeks
 const planCButton = document.querySelector('button[onclick="generatePlan(\'C\')"]');
-if (planAWeeks > weeksRemaining) {
+if (totalCredits > 2 * weeksRemaining) {
   planCButton.disabled = true;
-  planCButton.title = "Disabled: 2 credits/week will not be enough to finish on time.";
+  planCButton.title = "Disabled: Plan C needs 1–2 credits/week, which can't reach your total in time.";
 } else {
   planCButton.disabled = false;
   planCButton.title = "";
