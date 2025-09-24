@@ -1071,7 +1071,7 @@ if (totalWeeksD > weeksRemaining) {
         return [...Array(need).fill(2), ...Array(W - need).fill(0)];
       } else {
         const weeksOver = need - W;
-        const weeksOf3 = weeksOver * 2;
+        const weeksOf3 = weeksOver * 2;           // each 3 gives +1 more than 2
         const creditsFrom3s = weeksOf3 * 3;
         const remaining = C - creditsFrom3s;
         const w2 = Math.floor(remaining / 2);
@@ -1098,11 +1098,11 @@ if (totalWeeksD > weeksRemaining) {
       if (C <= W) {
         return [...Array(C).fill(1), ...Array(W - C).fill(0)];
       } else if (C <= 2 * W) {
-        const extras = C - W;
-        const ones = W - extras;
+        const extras = C - W;         // these must be 2s
+        const ones = W - extras;      // rest can be 1s
         return [...Array(extras).fill(2), ...Array(ones).fill(1)];
       } else {
-        return Array(W).fill(2);
+        return Array(W).fill(2);      // infeasible under ≤2/wk; keep honest
       }
     }
     if (planType === 'D') {
@@ -1132,16 +1132,27 @@ if (totalWeeksD > weeksRemaining) {
     return { ...w, credits: val };
   });
 
-  // Open window and compose HTML (escape </script> as <\/script> to avoid early termination)
+  // Open a new window
   const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
 
-  function counts(list) {
-    const out = {0:0,1:0,2:0,3:0,4:0};
-    list.forEach(v => { if (out[v] !== undefined) out[v]++; });
-    return out;
-  }
+  // Build table rows now (dateRanges is available in the parent scope)
+  const rowsHtml = allWeeks.map(w => {
+    const rowClass = w.skip ? ' class="skip-row"' : '';
+    const controls = w.skip
+      ? '<em>Skip</em>'
+      : '<button class="minus">–</button><button class="plus">+</button>';
+    return `
+      <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
+        <td>${w.week}</td>
+        <td>${dateRanges[w.week] || ''}</td>
+        <td><strong class="val">${w.credits}</strong></td>
+        <td class="controls">${controls}</td>
+      </tr>
+    `;
+  }).join('');
 
+  // Write the static HTML (NO <script> tag here)
   const html = `
 <!doctype html>
 <html>
@@ -1161,7 +1172,7 @@ if (totalWeeksD > weeksRemaining) {
       gap: 8px; align-items:center; z-index: 5;
     }
     .topbar .nums { display: flex; gap: 12px; justify-content: center; }
-    .topbar .tools { display:flex; gap: 8px; justify-content: flex-end; }
+    .topbar .tools { display:flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
     .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
     #printBtn {
       position: fixed; top: 16px; right: 16px; background-color: white; color: black;
@@ -1205,24 +1216,20 @@ if (totalWeeksD > weeksRemaining) {
       </tr>
     </thead>
     <tbody>
-      ${allWeeks.map(w => `
-        <tr ${w.skip ? 'class="skip-row"' : ''} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
-          <td>${w.week}</td>
-          <td>${dateRanges[w.week] || ''}</td>
-          <td><strong class="val">${w.credits}</strong></td>
-          <td class="controls">
-            ${w.skip ? '<em>Skip</em>' : '<button class="minus">–</button><button class="plus">+</button>'}
-          </td>
-        </tr>
-      `).join('')}
+      ${rowsHtml}
     </tbody>
   </table>
 
   <p style="margin-top:10px; font-size:0.95em; color:#555;">
     Notes: Skip weeks are locked at 0. Per-week limit is ${maxPerWeek}. The table won’t let you exceed your total target credits (${C}).
   </p>
+</body>
+</html>
+  `;
+  printWin.document.write(html);
 
-  <script>
+  // Inject behavior via a real <script> element (no template-string parsing issues)
+  const behavior = `
     (function() {
       const maxPerWeek = ${maxPerWeek};
       const target = ${C};
@@ -1331,12 +1338,12 @@ if (totalWeeksD > weeksRemaining) {
 
       refreshSummary();
     })();
-  <\/script>
-</body>
-</html>
   `;
+  const scriptEl = printWin.document.createElement('script');
+  scriptEl.textContent = behavior;
+  printWin.document.body.appendChild(scriptEl);
 
-  printWin.document.write(html);
+  // finalize
   printWin.document.close();
 }
 
