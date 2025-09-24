@@ -1049,17 +1049,17 @@ if (totalWeeksD > weeksRemaining) {
   document.getElementById("result").innerHTML = result;
 }
 
- function generatePlan(type) {
+function generatePlan(type) {
   const { totalCredits, startWeek, endWeek, skipWeeks } = storedPlan;
 
-  // 1) Build week objects with skip flags
+  // Build week list with skip flags
   let allWeeks = [];
   for (let w = startWeek; w <= endWeek; w++) {
     const isSkipped = skipWeeks.includes(w);
     allWeeks.push({ week: w, skip: isSkipped });
   }
 
-  // 2) Determine usable weeks and an initial distribution for this plan
+  // Usable weeks + base distribution
   const usable = allWeeks.filter(w => !w.skip);
   const W = usable.length;
   const C = totalCredits;
@@ -1067,24 +1067,16 @@ if (totalWeeksD > weeksRemaining) {
   function baseDistribution(planType) {
     if (planType === 'A') {
       const need = Math.ceil(C / 2);
-      if (need <= W) {
-        return [...Array(need).fill(2), ...Array(W - need).fill(0)];
-      } else {
-        const weeksOver = need - W;
-        const weeksOf3 = weeksOver * 2;           // each 3 gives +1 more than 2
-        const creditsFrom3s = weeksOf3 * 3;
-        const remaining = C - creditsFrom3s;
-        const w2 = Math.floor(remaining / 2);
-        const leftover = remaining % 2;
-        const w1 = leftover > 0 ? 1 : 0;
-        const zeros = Math.max(0, W - weeksOf3 - w2 - w1);
-        return [
-          ...Array(weeksOf3).fill(3),
-          ...Array(w2).fill(2),
-          ...Array(w1).fill(1),
-          ...Array(zeros).fill(0)
-        ];
-      }
+      if (need <= W) return [...Array(need).fill(2), ...Array(W - need).fill(0)];
+      const weeksOver = need - W;
+      const weeksOf3 = weeksOver * 2;
+      const creditsFrom3s = weeksOf3 * 3;
+      const remaining = C - creditsFrom3s;
+      const w2 = Math.floor(remaining / 2);
+      const leftover = remaining % 2;
+      const w1 = leftover > 0 ? 1 : 0;
+      const zeros = Math.max(0, W - weeksOf3 - w2 - w1);
+      return [...Array(weeksOf3).fill(3), ...Array(w2).fill(2), ...Array(w1).fill(1), ...Array(zeros).fill(0)];
     }
     if (planType === 'B') {
       const full3 = Math.floor(C / 3);
@@ -1095,15 +1087,9 @@ if (totalWeeksD > weeksRemaining) {
       return arr.slice(0, W);
     }
     if (planType === 'C') {
-      if (C <= W) {
-        return [...Array(C).fill(1), ...Array(W - C).fill(0)];
-      } else if (C <= 2 * W) {
-        const extras = C - W;         // these must be 2s
-        const ones = W - extras;      // rest can be 1s
-        return [...Array(extras).fill(2), ...Array(ones).fill(1)];
-      } else {
-        return Array(W).fill(2);      // infeasible under ≤2/wk; keep honest
-      }
+      if (C <= W) return [...Array(C).fill(1), ...Array(W - C).fill(0)];
+      if (C <= 2 * W) { const extras = C - W; const ones = W - extras; return [...Array(extras).fill(2), ...Array(ones).fill(1)]; }
+      return Array(W).fill(2);
     }
     if (planType === 'D') {
       const part1 = Array(Math.min(8, W)).fill(3);
@@ -1123,36 +1109,38 @@ if (totalWeeksD > weeksRemaining) {
 
   const initial = baseDistribution(type);
 
-  // Apply to allWeeks (keep 0 for skip rows)
-  let pointer = 0;
-  allWeeks = allWeeks.map(w => {
-    if (w.skip) return { ...w, credits: 0 };
-    const val = initial[pointer] ?? 0;
-    pointer += 1;
-    return { ...w, credits: val };
-  });
+  // Apply distribution (0 for skip rows)
+  let i = 0;
+  allWeeks = allWeeks.map(w => w.skip ? ({...w, credits: 0}) : ({...w, credits: initial[i++] ?? 0}));
 
-  // Open a new window
+  // New window & config
   const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
 
-  // Build table rows now (dateRanges is available in the parent scope)
+  // Build rows with inline ▲/▼ and 4 checkbox cells
   const rowsHtml = allWeeks.map(w => {
-    const rowClass = w.skip ? ' class="skip-row"' : '';
-    const controls = w.skip
-      ? '<em>Skip</em>'
-      : '<button class="minus">–</button><button class="plus">+</button>';
+    const isSkip = w.skip;
+    const creditCell = isSkip
+      ? `<div class="credit-wrap"><strong class="val">0</strong></div>`
+      : `<div class="credit-wrap">
+           <strong class="val">${w.credits}</strong>
+           <div class="chev-col">
+             <button class="chev up" title="Increase">▲</button>
+             <button class="chev down" title="Decrease">▼</button>
+           </div>
+         </div>`;
+    const checkCell = `<td><div class="check-wrap"><input type="checkbox" /> <span class="line">______</span></div></td>`;
     return `
-      <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
+      <tr ${isSkip ? 'class="skip-row"' : ''} data-week="${w.week}" data-skip="${isSkip ? '1' : '0'}">
         <td>${w.week}</td>
         <td>${dateRanges[w.week] || ''}</td>
-        <td><strong class="val">${w.credits}</strong></td>
-        <td class="controls">${controls}</td>
+        <td class="credits-cell">${creditCell}</td>
+        ${checkCell}${checkCell}${checkCell}${checkCell}
       </tr>
     `;
   }).join('');
 
-  // Write the static HTML (NO <script> tag here)
+  // Static HTML (no <script> tag here)
   const html = `
 <!doctype html>
 <html>
@@ -1161,191 +1149,7 @@ if (totalWeeksD > weeksRemaining) {
   <title>Plan ${type} – Editable Credit Tracker</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 16px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    .skip-row { background: #ffd6d6; }
-    .controls { display:flex; gap:8px; align-items:center; justify-content:center; }
-    .controls button { padding: 4px 8px; }
-    .topbar {
-      position: sticky; top: 0; background: #fff; border: 1px solid #ddd;
-      padding: 8px 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px; align-items:center; z-index: 5;
-    }
-    .topbar .nums { display: flex; gap: 12px; justify-content: center; }
-    .topbar .tools { display:flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-    .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
-    #printBtn {
-      position: fixed; top: 16px; right: 16px; background-color: white; color: black;
-      border: 1px solid black; padding: 8px 12px; border-radius: 6px; cursor: pointer; z-index: 9;
-    }
-    #printBtn:hover { background:#555; color:#fff; }
-    @media print { #printBtn { display:none; } .topbar .tools { display:none; } }
-  </style>
-</head>
-<body>
-  <button id="printBtn" onclick="window.print()">Print</button>
-
-  <div class="topbar">
-    <div class="nums">
-      <span class="badge">Target: <strong id="tgt">${C}</strong></span>
-      <span class="badge">Assigned: <strong id="asgn">0</strong></span>
-      <span class="badge">Remaining: <strong id="rem">0</strong></span>
-    </div>
-    <div class="nums">
-      <span class="badge">0s: <strong id="c0">0</strong></span>
-      <span class="badge">1s: <strong id="c1">0</strong></span>
-      <span class="badge">2s: <strong id="c2">0</strong></span>
-      <span class="badge">3s: <strong id="c3">0</strong></span>
-      ${maxPerWeek === 4 ? '<span class="badge">4s: <strong id="c4">0</strong></span>' : ''}
-    </div>
-    <div class="tools">
-      <button id="btnSpread1">Spread 1-credit weeks evenly</button>
-      <button id="btnFill2">Fill remaining as 2s</button>
-      <button id="btnClear">Clear all to 0</button>
-    </div>
-  </div>
-
-  <h2>Credit Tracker – Plan ${type}
-    <span style="font-weight: normal; font-size: 0.6em;"> - (Credit completion is allowed during self-selected “0” credit weeks.)</span>
-  </h2>
-
-  <table id="tbl">
-    <thead>
-      <tr>
-        <th>Week</th><th>Date Range</th><th>Credits</th><th>Adjust</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rowsHtml}
-    </tbody>
-  </table>
-
-  <p style="margin-top:10px; font-size:0.95em; color:#555;">
-    Notes: Skip weeks are locked at 0. Per-week limit is ${maxPerWeek}. The table won’t let you exceed your total target credits (${C}).
-  </p>
-</body>
-</html>
-  `;
-  printWin.document.write(html);
-
-  // Inject behavior via a real <script> element (no template-string parsing issues)
-  const behavior = `
-    (function() {
-      const maxPerWeek = ${maxPerWeek};
-      const target = ${C};
-      const table = document.getElementById('tbl');
-
-      function currentValues() {
-        const vals = [];
-        table.querySelectorAll('tbody tr').forEach(tr => {
-          const skip = tr.getAttribute('data-skip') === '1';
-          const v = parseInt(tr.querySelector('.val').textContent) || 0;
-          vals.push({ tr, skip, v });
-        });
-        return vals;
-      }
-
-      function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
-
-      function refreshSummary() {
-        const items = currentValues();
-        const nums = items.map(x => x.v);
-        const assigned = sum(nums);
-        const rem = Math.max(0, target - assigned);
-        const cnt = {0:0,1:0,2:0,3:0,4:0};
-        nums.forEach(n => { if (cnt[n] !== undefined) cnt[n]++; });
-
-        document.getElementById('asgn').textContent = assigned;
-        document.getElementById('rem').textContent = rem;
-        document.getElementById('c0').textContent = cnt[0] || 0;
-        document.getElementById('c1').textContent = cnt[1] || 0;
-        document.getElementById('c2').textContent = cnt[2] || 0;
-        document.getElementById('c3').textContent = cnt[3] || 0;
-        const c4El = document.getElementById('c4');
-        if (c4El) c4El.textContent = cnt[4] || 0;
-      }
-
-      function trySet(tr, newVal) {
-        const skip = tr.getAttribute('data-skip') === '1';
-        if (skip) return;
-        newVal = Math.max(0, Math.min(maxPerWeek, newVal));
-
-        const items = currentValues();
-        const old = parseInt(tr.querySelector('.val').textContent) || 0;
-        const assignedNow = items.reduce((s,i)=>s+i.v,0);
-        const assignedMinusOld = assignedNow - old;
-        const room = Math.max(0, target - assignedMinusOld);
-        if (newVal > room) newVal = room;
-
-        tr.querySelector('.val').textContent = newVal;
-        refreshSummary();
-      }
-
-      table.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if (!btn) return;
-        const tr = e.target.closest('tr');
-        const valEl = tr.querySelector('.val');
-        let v = parseInt(valEl.textContent) || 0;
-
-        if (btn.classList.contains('plus')) trySet(tr, v + 1);
-        if (btn.classList.contains('minus')) trySet(tr, v - 1);
-      });
-
-      document.getElementById('btnClear').addEventListener('click', () => {
-        table.querySelectorAll('tbody tr').forEach(tr => {
-          if (tr.getAttribute('data-skip') === '1') return;
-          tr.querySelector('.val').textContent = '0';
-        });
-        refreshSummary();
-      });
-
-      document.getElementById('btnFill2').addEventListener('click', () => {
-        const rows = currentValues().filter(i => !i.skip);
-        let assigned = rows.reduce((s,i)=>s+i.v,0);
-        let room = Math.max(0, target - assigned);
-        if (room <= 0) return;
-
-        for (const it of rows) {
-          while (it.v < Math.min(2, maxPerWeek) && room > 0) {
-            it.v += 1;
-            room -= 1;
-            it.tr.querySelector('.val').textContent = it.v;
-          }
-          if (room <= 0) break;
-        }
-        refreshSummary();
-      });
-
-      document.getElementById('btnSpread1').addEventListener('click', () => {
-        const rows = currentValues().filter(i => !i.skip);
-        let assigned = rows.reduce((s,i)=>s+i.v,0);
-        let remaining = Math.max(0, target - assigned);
-        if (remaining <= 0) return;
-
-        const zeroIdxs = rows
-          .map((it, idx) => ({it, idx}))
-          .filter(x => x.it.v === 0)
-          .map(x => x.idx);
-
-        const toPlace = Math.min(remaining, zeroIdxs.length);
-        for (let k = 0; k < toPlace; k++) {
-          const pos = Math.floor(k * zeroIdxs.length / toPlace);
-          const tr = rows[zeroIdxs[pos]].tr;
-          trySet(tr, 1);
-        }
-      });
-
-      refreshSummary();
-    })();
-  `;
-  const scriptEl = printWin.document.createElement('script');
-  scriptEl.textContent = behavior;
-  printWin.document.body.appendChild(scriptEl);
-
-  // finalize
-  printWin.document.close();
-}
+    table { border-collapse: collapse; width: 100%; margin-top: 12
 
     // Pressing "Enter" in any input field triggers calculateCredits
     function displayCurrentDateAndWeek() {
