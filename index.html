@@ -1052,7 +1052,7 @@ if (totalWeeksD > weeksRemaining) {
 function generatePlan(type) {
   const { totalCredits, startWeek, endWeek, skipWeeks } = storedPlan;
 
-  // Build week list with skip flags
+  // Build weeks with skip flags
   let allWeeks = [];
   for (let w = startWeek; w <= endWeek; w++) {
     const isSkipped = skipWeeks.includes(w);
@@ -1113,249 +1113,199 @@ function generatePlan(type) {
   let i = 0;
   allWeeks = allWeeks.map(w => w.skip ? ({...w, credits: 0}) : ({...w, credits: initial[i++] ?? 0}));
 
-  // New window & config
+  // New window
   const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
 
-  // Build rows with inline ▲/▼ and 4 checkbox cells
+  // Build rows with inline ▲/▼ and four checkbox cells
   const rowsHtml = allWeeks.map(w => {
     const isSkip = w.skip;
     const creditCell = isSkip
-      ? `<div class="credit-wrap"><strong class="val">0</strong></div>`
-      : `<div class="credit-wrap">
-           <strong class="val">${w.credits}</strong>
-           <div class="chev-col">
-             <button class="chev up" title="Increase">▲</button>
-             <button class="chev down" title="Decrease">▼</button>
-           </div>
-         </div>`;
-    const checkCell = `<td><div class="check-wrap"><input type="checkbox" /> <span class="line">______</span></div></td>`;
-    return `
-      <tr ${isSkip ? 'class="skip-row"' : ''} data-week="${w.week}" data-skip="${isSkip ? '1' : '0'}">
-        <td>${w.week}</td>
-        <td>${dateRanges[w.week] || ''}</td>
-        <td class="credits-cell">${creditCell}</td>
-        ${checkCell}${checkCell}${checkCell}${checkCell}
-      </tr>
-    `;
+      ? '<div class="credit-wrap"><strong class="val">0</strong></div>'
+      : [
+          '<div class="credit-wrap">',
+          '  <strong class="val">', String(w.credits) ,'</strong>',
+          '  <div class="chev-col">',
+          '    <button class="chev up" title="Increase">▲</button>',
+          '    <button class="chev down" title="Decrease">▼</button>',
+          '  </div>',
+          '</div>'
+        ].join('');
+    const checkCell = '<td><div class="check-wrap"><input type="checkbox" /> <span class="line">______</span></div></td>';
+    return [
+      '<tr', (isSkip ? ' class="skip-row"' : ''), ' data-week="', w.week, '" data-skip="', (isSkip ? '1' : '0'), '">',
+      '  <td>', w.week, '</td>',
+      '  <td>', (dateRanges[w.week] || ''), '</td>',
+      '  <td class="credits-cell">', creditCell, '</td>',
+      '  ', checkCell, checkCell, checkCell, checkCell,
+      '</tr>'
+    ].join('');
   }).join('');
 
-  // Static HTML (no <script> tag here)
-  const html = `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Plan ${type} – Editable Credit Tracker</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 16px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 12
+  // ---------- POPUP HTML (array-joined; no backticks inside your main script) ----------
+  const html = [
+'<!doctype html>',
+'<html>',
+'<head>',
+'  <meta charset="utf-8">',
+'  <title>Plan ' + type + ' – Editable Credit Tracker</title>',
+'  <style>',
+'    body { font-family: Arial, sans-serif; padding: 16px; }',
+'    table { border-collapse: collapse; width: 100%; margin-top: 12px; }',
+'    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }',
+'    .skip-row { background: #ffd6d6; }',
+'    .credits-cell { min-width: 110px; }',
+'    .credit-wrap { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }',
+'    .chev-col { display: inline-flex; flex-direction: column; gap: 2px; }',
+'    .chev { width: 22px; height: 16px; line-height: 14px; padding: 0; border: 1px solid #bbb; background: #fff; cursor: pointer; font-size: 11px; }',
+'    .chev:active { transform: translateY(1px); }',
+'    .check-wrap { display:flex; align-items:center; gap:6px; justify-content:center; }',
+'    .line { color:#777; letter-spacing: 2px; }',
+'    .topbar { position: sticky; top: 0; background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: center; z-index: 5; }',
+'    .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }',
+'    #printBtn { position: fixed; top: 16px; right: 16px; background: #fff; color: #000; border: 1px solid #000; padding: 8px 12px; border-radius: 6px; cursor: pointer; z-index: 9; }',
+'    #printBtn:hover { background:#555; color:#fff; }',
+'    @media print { #printBtn { display:none; } .topbar .tools { display:none; } }',
+'  </style>',
+'</head>',
+'<body>',
+'  <button id="printBtn" onclick="window.print()">Print</button>',
+'  <div class="topbar">',
+'    <div class="nums">',
+'      <span class="badge">Target: <strong id="tgt">' + C + '</strong></span>',
+'      <span class="badge">Assigned: <strong id="asgn">0</strong></span>',
+'      <span class="badge">Remaining: <strong id="rem">0</strong></span>',
+'    </div>',
+'    <div class="nums">',
+'      <span class="badge">0s: <strong id="c0">0</strong></span>',
+'      <span class="badge">1s: <strong id="c1">0</strong></span>',
+'      <span class="badge">2s: <strong id="c2">0</strong></span>',
+'      <span class="badge">3s: <strong id="c3">0</strong></span>',
+      (maxPerWeek === 4 ? '      <span class="badge">4s: <strong id="c4">0</strong></span>' : ''),
+'    </div>',
+'    <div class="tools">',
+'      <button id="btnSpread1">Spread 1-credit weeks evenly</button>',
+'      <button id="btnFill2">Fill remaining as 2s</button>',
+'      <button id="btnClear">Clear all to 0</button>',
+'    </div>',
+'  </div>',
+'  <h2>Credit Tracker – Plan ' + type + ' <span style="font-weight: normal; font-size: 0.6em;"> - (Credit completion is allowed during self-selected “0” credit weeks.)</span></h2>',
+'  <table id="tbl">',
+'    <thead>',
+'      <tr><th>Week</th><th>Date Range</th><th>Credits</th><th colspan="4">Credits</th></tr>',
+'    </thead>',
+'    <tbody>',
+       rowsHtml,
+'    </tbody>',
+'  </table>',
+'  <p style="margin-top:10px; font-size:0.95em; color:#555;">Notes: Skip weeks are locked at 0. Per-week limit is ' + maxPerWeek + '. The table won’t let you exceed your total target credits (' + C + ').</p>',
+'</body>',
+'</html>'
+].join('\n');
 
-    // Pressing "Enter" in any input field triggers calculateCredits
-    function displayCurrentDateAndWeek() {
-  const today = new Date();  // ✅ define today FIRST
+  printWin.document.write(html);
 
-  const dateRanges = [
-    "", "2025-07-01", "2025-07-07", "2025-07-14", "2025-07-21", "2025-07-28",
-    "2025-08-04", "2025-08-11", "2025-08-18", "2025-08-25", "2025-09-01",
-    "2025-09-08", "2025-09-15", "2025-09-22", "2025-09-29", "2025-10-06",
-    "2025-10-13", "2025-10-20", "2025-10-27", "2025-11-03", "2025-11-10",
-    "2025-11-17", "2025-11-24", "2025-12-01", "2025-12-08", "2025-12-15",
-    "2025-12-22", "2025-12-29", "2026-01-05", "2026-01-12", "2026-01-19",
-    "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23",
-    "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30",
-    "2026-04-06", "2026-04-13", "2026-04-20", "2026-04-27", "2026-05-04",
-    "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08",
-    "2026-06-15", "2026-06-22", "2026-06-29"
-  ];
+  // ---------- Behavior (injected as a real script; no parsing pitfalls) ----------
+  const behavior = [
+'(function(){',
+'  const maxPerWeek = ' + maxPerWeek + ';',
+'  const target = ' + C + ';',
+'  const table = document.getElementById("tbl");',
+'',
+'  function currentValues(){',
+'    const vals = [];',
+'    table.querySelectorAll("tbody tr").forEach(tr => {',
+'      const skip = tr.getAttribute("data-skip") === "1";',
+'      const v = parseInt(tr.querySelector(".val").textContent) || 0;',
+'      vals.push({ tr, skip, v });',
+'    });',
+'    return vals;',
+'  }',
+'  function sum(a){ return a.reduce((x,y)=>x+y,0); }',
+'',
+'  function refreshSummary(){',
+'    const items = currentValues();',
+'    const nums = items.map(x => x.v);',
+'    const assigned = sum(nums);',
+'    const rem = Math.max(0, target - assigned);',
+'    const cnt = {0:0,1:0,2:0,3:0,4:0};',
+'    nums.forEach(n => { if (cnt[n] !== undefined) cnt[n]++; });',
+'    document.getElementById("asgn").textContent = assigned;',
+'    document.getElementById("rem").textContent = rem;',
+'    document.getElementById("c0").textContent = cnt[0] || 0;',
+'    document.getElementById("c1").textContent = cnt[1] || 0;',
+'    document.getElementById("c2").textContent = cnt[2] || 0;',
+'    document.getElementById("c3").textContent = cnt[3] || 0;',
+'    const c4El = document.getElementById("c4");',
+'    if (c4El) c4El.textContent = cnt[4] || 0;',
+'  }',
+'',
+'  function trySet(tr, newVal){',
+'    if (tr.getAttribute("data-skip") === "1") return;',
+'    newVal = Math.max(0, Math.min(maxPerWeek, newVal));',
+'    const items = currentValues();',
+'    const old = parseInt(tr.querySelector(".val").textContent) || 0;',
+'    const assignedNow = items.reduce((s,i)=>s+i.v,0);',
+'    const assignedMinusOld = assignedNow - old;',
+'    const room = Math.max(0, target - assignedMinusOld);',
+'    if (newVal > room) newVal = room;',
+'    tr.querySelector(".val").textContent = newVal;',
+'    refreshSummary();',
+'  }',
+'',
+'  table.addEventListener("click", (e) => {',
+'    const btn = e.target.closest("button.chev");',
+'    if (!btn) return;',
+'    const tr = e.target.closest("tr");',
+'    const v = parseInt(tr.querySelector(".val").textContent) || 0;',
+'    if (btn.classList.contains("up"))   trySet(tr, v + 1);',
+'    if (btn.classList.contains("down")) trySet(tr, v - 1);',
+'  });',
+'',
+'  document.getElementById("btnClear").addEventListener("click", () => {',
+'    table.querySelectorAll("tbody tr").forEach(tr => {',
+'      if (tr.getAttribute("data-skip") === "1") return;',
+'      tr.querySelector(".val").textContent = "0";',
+'    });',
+'    refreshSummary();',
+'  });',
+'',
+'  document.getElementById("btnFill2").addEventListener("click", () => {',
+'    const rows = currentValues().filter(i => !i.skip);',
+'    let assigned = rows.reduce((s,i)=>s+i.v,0);',
+'    let room = Math.max(0, target - assigned);',
+'    if (room <= 0) return;',
+'    for (const it of rows) {',
+'      while (it.v < Math.min(2, maxPerWeek) && room > 0) {',
+'        it.v += 1; room -= 1;',
+'        it.tr.querySelector(".val").textContent = it.v;',
+'      }',
+'      if (room <= 0) break;',
+'    }',
+'    refreshSummary();',
+'  });',
+'',
+'  document.getElementById("btnSpread1").addEventListener("click", () => {',
+'    const rows = currentValues().filter(i => !i.skip);',
+'    let assigned = rows.reduce((s,i)=>s+i.v,0);',
+'    let remaining = Math.max(0, target - assigned);',
+'    if (remaining <= 0) return;',
+'    const zeroIdxs = rows.map((it, idx) => ({it, idx})).filter(x => x.it.v === 0).map(x => x.idx);',
+'    const toPlace = Math.min(remaining, zeroIdxs.length);',
+'    for (let k = 0; k < toPlace; k++) {',
+'      const pos = Math.floor(k * zeroIdxs.length / toPlace);',
+'      const tr = rows[zeroIdxs[pos]].tr;',
+'      trySet(tr, 1);',
+'    }',
+'  });',
+'',
+'  refreshSummary();',
+'})();'
+].join('\n');
 
-  let currentWeek = "Outside of school year";
+  const scriptEl = printWin.document.createElement('script');
+  scriptEl.textContent = behavior;
+  printWin.document.body.appendChild(scriptEl);
 
-  for (let i = dateRanges.length - 1; i > 0; i--) {
-  const [year, month, day] = dateRanges[i].split("-").map(Number);
-  const weekStart = new Date(year, month - 1, day); // Month is 0-indexed
-  if (today >= weekStart) {
-    currentWeek = i;
-
-    // ✅ Auto-set "What week are you starting from?"
-    const startWeekSelect = document.getElementById("startWeek");
-    if (startWeekSelect) startWeekSelect.value = currentWeek;
-
-    break;
-  }
+  printWin.document.close();
 }
-
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = today.toLocaleDateString(isSpanish ? "es-ES" : "en-US", options);
-
-  const label = currentWeek === "Outside of school year"
-    ? (isSpanish ? `Hoy es ${formattedDate}` : `Today is ${formattedDate}`)
-    : (isSpanish
-        ? `📅 Semana actual: ${currentWeek}`
-        : `📅 Current Week: ${currentWeek}`);
-
-  const dateEl = document.getElementById("currentDate");
-  const weekEl = document.getElementById("currentWeek");
-
-  if (dateEl && weekEl) {
-    dateEl.textContent = formattedDate;
-    weekEl.textContent = label;
-  }
-}
-
-    function setLanguage(spanish) {
-  isSpanish = spanish;
-      
-      if (spanish) {
-  document.body.classList.add("spanish-mode");
-} else {
-  document.body.classList.remove("spanish-mode");
-}
-
-  // Fade out language prompt
-  const prompt = document.getElementById("languagePrompt");
-  prompt.style.opacity = 0;
-
-  // After fade-out delay, hide prompt and show calculator
-  setTimeout(() => {
-    prompt.style.display = "none";
-
-    document.body.classList.remove("show-prompt");
-
-    const calc = document.querySelector(".container");
-    calc.style.opacity = 0;
-    calc.style.display = "block";
-
-    // Fade in calculator
-    setTimeout(() => {
-      calc.style.opacity = 1;
-    }, 10);
-
-    // Update language toggle button without flipping language again
-    document.getElementById("langToggleBtn").innerHTML = isSpanish ? "English" : "Español";
-
-    // Refresh translations
-    applyTranslations();
-  }, 400); // Matches 0.4s transition time
-}
-    
-    function applyTranslations() {
-  Object.keys(translations).forEach(eng => {
-    const elements = Array.from(document.querySelectorAll("*")).filter(el =>
-      el.childNodes.length === 1 &&
-      el.childNodes[0].nodeType === 3 &&
-      (el.textContent.trim() === eng || el.textContent.trim() === translations[eng])
-    );
-    elements.forEach(el => {
-      el.innerHTML = isSpanish ? translations[eng] : eng;
-    });
-  });
-
-  const mainDisclaimerEl = document.getElementById("mainDisclaimer");
-  if (mainDisclaimerEl) {
-    mainDisclaimerEl.innerHTML = isSpanish
-      ? translations.mainDisclaimerFull_ES
-      : translations.mainDisclaimerFull;
-  }
-
-  const footerDisclaimerEl = document.getElementById("footerDisclaimer");
-  if (footerDisclaimerEl) {
-    footerDisclaimerEl.innerHTML = isSpanish
-      ? translations.footerDisclaimerFull_ES
-      : translations.footerDisclaimerFull;
-  }
-      
-      const currentDateEl = document.getElementById("currentDate");
-  if (currentDateEl) {
-    const today = new Date();
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    currentDateEl.textContent = today.toLocaleDateString(isSpanish ? "es-ES" : "en-US", options);
-  }
-
-  const currentWeekEl = document.getElementById("currentWeek");
-  if (currentWeekEl) {
-    const startDate = new Date(new Date().getFullYear(), 6, 1); // July 1
-    const today = new Date();
-    const diffTime = today - startDate;
-    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7)) + 1;
-    currentWeekEl.textContent = isSpanish
-      ? `📅 Semana actual: ${diffWeeks}`
-      : `📅 Current Week: ${diffWeeks}`;
-  }
-
-  const skipBoxTitleEl = document.getElementById("skipBoxTitle");
-if (skipBoxTitleEl) {
-  skipBoxTitleEl.textContent = getText("Weeks You Plan to Skip (Optional):");
-}
-
-  populateWeekDropdowns();
-document.getElementById("endWeek").value = "46";
-displayCurrentDateAndWeek(); // <-- sets startWeek to the current week
-renderResult();
-}
-    
-    function toggleLanguage() {
-  isSpanish = !isSpanish;
-  document.getElementById("langToggleBtn").innerHTML = isSpanish ? "English" : "Español";
-
-  Object.keys(translations).forEach(eng => {
-    const elements = Array.from(document.querySelectorAll("*")).filter(el =>
-      el.childNodes.length === 1 &&
-      el.childNodes[0].nodeType === 3 &&
-      (el.textContent.trim() === eng || el.textContent.trim() === translations[eng])
-    );
-    elements.forEach(el => {
-      el.innerHTML = isSpanish ? translations[eng] : eng;
-    });
-  });
-
- // ✅ Add this at the very end of the script
-  const currentDateEl = document.getElementById("currentDate");
-  if (currentDateEl) {
-    const today = new Date();
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    currentDateEl.textContent = today.toLocaleDateString(undefined, options);
-  }
-
-  const currentWeekEl = document.getElementById("currentWeek");
-  if (currentWeekEl) {
-    const startDate = new Date(new Date().getFullYear(), 6, 1); // July 1
-    const today = new Date();
-    const diffTime = today - startDate;
-    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7)) + 1;
-    currentWeekEl.textContent = `Week ${diffWeeks}`;
-  }
-
-  // ✅ Refresh dropdowns with a small delay
-  populateWeekDropdowns();
-document.getElementById("endWeek").value = "46";
-displayCurrentDateAndWeek(); // <-- sets startWeek to the current week
-renderResult();
-}
-document.addEventListener("DOMContentLoaded", () => {
-  populateWeekDropdowns();
-  document.getElementById("endWeek").value = "46";
-  displayCurrentDateAndWeek();
-
-  // ✅ Add checkbox event listeners
-  document.getElementById("skipThanksgiving").addEventListener("change", calculateCredits);
-  document.getElementById("skipWinter").addEventListener("change", calculateCredits);
-  document.getElementById("skipSpring").addEventListener("change", calculateCredits);
-  for (let i = 1; i <= 4; i++) {
-  document.getElementById(`customSkip${i}`).addEventListener("change", calculateCredits);
-  document.getElementById(`customWeek${i}`).addEventListener("change", calculateCredits);
-}
-
-  // ✅ Add Enter key triggers
-  ["totalCredits", "startWeek", "endWeek"].forEach(id => {
-    document.getElementById(id).addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault(); // Prevent form submission or accidental refresh
-        calculateCredits();
-      }
-    });
-  });
-});
-  </script>
-</body>
-</html>
