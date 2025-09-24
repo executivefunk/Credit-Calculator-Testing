@@ -1049,7 +1049,7 @@ if (totalWeeksD > weeksRemaining) {
   document.getElementById("result").innerHTML = result;
 }
 
-   function generatePlan(type) {
+ function generatePlan(type) {
   const { totalCredits, startWeek, endWeek, skipWeeks } = storedPlan;
 
   // 1) Build week objects with skip flags
@@ -1064,7 +1064,6 @@ if (totalWeeksD > weeksRemaining) {
   const W = usable.length;
   const C = totalCredits;
 
-  // helper: make a distribution array for the current plan
   function baseDistribution(planType) {
     if (planType === 'A') {
       const need = Math.ceil(C / 2);
@@ -1099,15 +1098,14 @@ if (totalWeeksD > weeksRemaining) {
       if (C <= W) {
         return [...Array(C).fill(1), ...Array(W - C).fill(0)];
       } else if (C <= 2 * W) {
-        const extras = C - W;     // weeks that must be 2
-        const ones = W - extras;  // remaining 1s
+        const extras = C - W;
+        const ones = W - extras;
         return [...Array(extras).fill(2), ...Array(ones).fill(1)];
       } else {
-        return Array(W).fill(2);  // infeasible under strictly ≤2, but keep honest
+        return Array(W).fill(2);
       }
     }
     if (planType === 'D') {
-      // 8w @3, then 4s
       const part1 = Array(Math.min(8, W)).fill(3);
       const remCredits = C - (3 * part1.length);
       let after = [];
@@ -1134,11 +1132,10 @@ if (totalWeeksD > weeksRemaining) {
     return { ...w, credits: val };
   });
 
-  // Window UI
+  // Open window and compose HTML (escape </script> as <\/script> to avoid early termination)
   const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
 
-  // Count helpers
   function counts(list) {
     const out = {0:0,1:0,2:0,3:0,4:0};
     list.forEach(v => { if (out[v] !== undefined) out[v]++; });
@@ -1188,7 +1185,7 @@ if (totalWeeksD > weeksRemaining) {
       <span class="badge">1s: <strong id="c1">0</strong></span>
       <span class="badge">2s: <strong id="c2">0</strong></span>
       <span class="badge">3s: <strong id="c3">0</strong></span>
-      ${maxPerWeek === 4 ? `<span class="badge">4s: <strong id="c4">0</strong></span>` : ``}
+      ${maxPerWeek === 4 ? '<span class="badge">4s: <strong id="c4">0</strong></span>' : ''}
     </div>
     <div class="tools">
       <button id="btnSpread1">Spread 1-credit weeks evenly</button>
@@ -1214,10 +1211,7 @@ if (totalWeeksD > weeksRemaining) {
           <td>${dateRanges[w.week] || ''}</td>
           <td><strong class="val">${w.credits}</strong></td>
           <td class="controls">
-            ${w.skip ? `<em>Skip</em>` : `
-              <button class="minus">–</button>
-              <button class="plus">+</button>
-            `}
+            ${w.skip ? '<em>Skip</em>' : '<button class="minus">–</button><button class="plus">+</button>'}
           </td>
         </tr>
       `).join('')}
@@ -1266,22 +1260,15 @@ if (totalWeeksD > weeksRemaining) {
 
       function trySet(tr, newVal) {
         const skip = tr.getAttribute('data-skip') === '1';
-        if (skip) return; // locked
+        if (skip) return;
         newVal = Math.max(0, Math.min(maxPerWeek, newVal));
 
-        // compute if setting this cell would exceed target
         const items = currentValues();
         const old = parseInt(tr.querySelector('.val').textContent) || 0;
-        const assignedWithout = sum(items.map(x => x.tr === tr ? 0 : x.v)) + old; // will subtract old next line
-        const assignedNow = sum(items.map(x => x.v));
+        const assignedNow = items.reduce((s,i)=>s+i.v,0);
         const assignedMinusOld = assignedNow - old;
-        const newAssigned = assignedMinusOld + newVal;
-
-        if (newAssigned > target) {
-          // clamp to the largest allowed without exceeding target
-          const room = Math.max(0, target - assignedMinusOld);
-          newVal = Math.min(newVal, room);
-        }
+        const room = Math.max(0, target - assignedMinusOld);
+        if (newVal > room) newVal = room;
 
         tr.querySelector('.val').textContent = newVal;
         refreshSummary();
@@ -1294,12 +1281,8 @@ if (totalWeeksD > weeksRemaining) {
         const valEl = tr.querySelector('.val');
         let v = parseInt(valEl.textContent) || 0;
 
-        if (btn.classList.contains('plus')) {
-          trySet(tr, v + 1);
-        }
-        if (btn.classList.contains('minus')) {
-          trySet(tr, v - 1);
-        }
+        if (btn.classList.contains('plus')) trySet(tr, v + 1);
+        if (btn.classList.contains('minus')) trySet(tr, v - 1);
       });
 
       document.getElementById('btnClear').addEventListener('click', () => {
@@ -1311,57 +1294,44 @@ if (totalWeeksD > weeksRemaining) {
       });
 
       document.getElementById('btnFill2').addEventListener('click', () => {
-        // Fill remaining capacity as 2s (respect caps and target)
-        const items = currentValues();
-        let assigned = sum(items.map(i => i.v));
-        const roomTotal = target - assigned;
-        if (roomTotal <= 0) return;
+        const rows = currentValues().filter(i => !i.skip);
+        let assigned = rows.reduce((s,i)=>s+i.v,0);
+        let room = Math.max(0, target - assigned);
+        if (room <= 0) return;
 
-        for (const it of items) {
-          if (it.skip) continue;
-          let v = it.v;
-          while (v < Math.min(2, maxPerWeek)) {
-            const would = assigned - it.v + (v + 1);
-            if (would > target) break;
-            v += 1;
-            assigned = assigned - it.v + v;
-            it.tr.querySelector('.val').textContent = v;
-            if (assigned >= target) break;
+        for (const it of rows) {
+          while (it.v < Math.min(2, maxPerWeek) && room > 0) {
+            it.v += 1;
+            room -= 1;
+            it.tr.querySelector('.val').textContent = it.v;
           }
-          if (assigned >= target) break;
+          if (room <= 0) break;
         }
         refreshSummary();
       });
 
       document.getElementById('btnSpread1').addEventListener('click', () => {
-        // Spread as many 1-credit weeks as possible given remaining
-        const items = currentValues().filter(i => !i.skip);
-        // Figure out how many 1s we can place: remaining credits minus what’s already assigned, but we set cells to exactly 1 (from 0)
-        let assigned = sum(items.map(i => i.v));
-        let remaining = target - assigned;
+        const rows = currentValues().filter(i => !i.skip);
+        let assigned = rows.reduce((s,i)=>s+i.v,0);
+        let remaining = Math.max(0, target - assigned);
         if (remaining <= 0) return;
 
-        // We want to set cells that are currently 0 to 1, spaced out across the table
-        const zeroIdxs = items
+        const zeroIdxs = rows
           .map((it, idx) => ({it, idx}))
           .filter(x => x.it.v === 0)
           .map(x => x.idx);
 
-        if (zeroIdxs.length === 0) return;
-
-        // Evenly spaced distribution of 1s across zeroIdxs
         const toPlace = Math.min(remaining, zeroIdxs.length);
         for (let k = 0; k < toPlace; k++) {
           const pos = Math.floor(k * zeroIdxs.length / toPlace);
-          const tr = items[zeroIdxs[pos]].tr;
+          const tr = rows[zeroIdxs[pos]].tr;
           trySet(tr, 1);
         }
       });
 
-      // initialize summary with prefilled plan
       refreshSummary();
     })();
-  </script>
+  <\/script>
 </body>
 </html>
   `;
