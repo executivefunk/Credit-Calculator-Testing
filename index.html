@@ -1196,46 +1196,74 @@ const html = `
   .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
 
   /* Progress cell as a 4-column grid */
+/* Make table cells play nicely */
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; vertical-align: middle; }
+
+/* Single Progress column contains a mini-grid of 4 items */
 .col-progress .progress-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 equal tracks, shrink safely */
   gap: 6px;
-  justify-items: center;   /* center each mini-column */
   align-items: center;
+  justify-items: center;
 }
 
+/* Each mini “checkbox + number + line” */
 .chk {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.95rem;
-  white-space: nowrap;
+  font-size: 0.9rem;      /* slightly smaller to avoid cramping */
+  white-space: nowrap;    /* keep number and line together */
 }
 
+/* The write-in line: flexible on screen, exact 1 inch on print */
 .credit-line {
   display: inline-block;
   border-bottom: 1px solid #000;
-  width: 1in;   /* one-inch line */
   height: 1em;
+  /* On screen: flex a bit so it won't overflow; on print we override to 1in */
+  width: clamp(0.6in, 14vw, 1in);
+  /* If you prefer more text room and fewer overflows, reduce the lower bound to 0.5in */
 }
 
-/* (You can keep your existing column widths) */
-col.col-week     { width: 12%; }
-col.col-date     { width: 22%; }  /* slimmer Date Range */
-col.col-credits  { width: 14%; }
-col.col-progress { width: 32%; }  /* contains the 4 mini-columns */
+/* Column widths (screen) – give Progress more room, slim Week/Credits a bit */
+col.col-week     { width: 10%; }   /* down from 12–15% */
+col.col-date     { width: 22%; }   /* your slim date column */
+col.col-credits  { width: 12%; }   /* down from 14–15% */
+col.col-progress { width: 36%; }   /* up from 32–35% so 4 items fit */
 col.col-adjust   { width: 20%; }
 
+/* When screen is tight, automatically switch Progress to 2×2 grid (no overlap) */
+@media (max-width: 1024px) {
+  col.col-progress { width: 40%; } /* give progress a touch more space on tablets */
+  .col-progress .progress-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 columns × 2 rows */
+    row-gap: 8px;
+  }
+  .credit-line { width: clamp(0.5in, 20vw, 0.9in); } /* slightly shorter lines on narrow screens */
+}
+
+/* Print: hide Adjust, fix widths, and force true 1-inch lines */
 @media print {
+  #printBtn { display: none; }
+  .topbar .tools { display: none; }
+
+  /* Hide Adjust column on paper */
   th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
+  /* Rebalance for print (4 items side-by-side) */
   col.col-week     { width: 15%; }
   col.col-date     { width: 25%; }
   col.col-credits  { width: 15%; }
   col.col-progress { width: 45%; }
 
+  /* Make checkboxes & lines print clearly */
   input[type="checkbox"] { width: 14px; height: 14px; }
-  .credit-line { width: 1in; }
+  .col-progress .progress-grid {
+    grid-template-columns: repeat(4, 1fr);  /* always 4 across on paper */
+  }
+  .credit-line { width: 1in; }  /* true 1 inch on print */
   .notes { display: none !important; }
 }
 </style>
