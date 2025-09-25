@@ -1241,20 +1241,37 @@ const html = `
   #printBtn:hover { background:#555; color:#fff; }
 
   @media print {
-    #printBtn { display:none; }
-    .topbar .tools { display:none; }
-    th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
-
-    /* Print: maximize Progress space */
-    col.col-week     { width: 8%; }
-    col.col-date     { width: 20%; }
-    col.col-credits  { width: 8%; }
-    col.col-progress { width: 64%; }
-
-    .col-progress .progress-grid { grid-template-columns: repeat(4, 1fr); }
-    .credit-line { width: 1in; }
-    .notes { display: none !important; }
+  /* Optional: tighter page margins to reclaim space */
+  @page {
+    size: letter portrait;
+    margin: 0.5in; /* adjust if you must keep 1in margins */
   }
+
+  #printBtn { display: none; }
+  .topbar .tools { display: none; }
+  th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
+
+  /* Rebalance column widths: squeeze Week, Date, Credits, give Progress more */
+  col.col-week     { width: 6%; }   /* narrower */
+  col.col-date     { width: 16%; }  /* slimmer */
+  col.col-credits  { width: 6%; }   /* narrower */
+  col.col-progress { width: 72%; }  /* big expansion */
+
+  /* Progress formatting */
+  .col-progress .progress-grid {
+    grid-template-columns: repeat(4, 1fr);
+    column-gap: 4px;         /* was 8px */
+    justify-items: start;    /* align items left for more room */
+  }
+  .chk {
+    font-size: 0.82rem;      /* smaller text on print */
+    gap: 2px;
+  }
+  .chk input { width: 12px; height: 12px; } /* smaller checkboxes on print */
+  .credit-line { width: 0.9in !important; } /* slightly shorter so all 4 fit */
+
+  .notes { display: none !important; }
+}
 </style>
 </head>
 <body>
