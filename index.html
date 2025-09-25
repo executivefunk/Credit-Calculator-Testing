@@ -1186,7 +1186,9 @@ const html = `
     gap: 8px; align-items:center; z-index: 5;
   }
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
-  .topbar .tools { display:flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .topbar .tools {
+  padding-right: 80px; /* reserves space on right for Print button */
+}
   .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
 
   /* Progress: 1–4 checkboxes, each with a 1-inch write line */
