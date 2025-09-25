@@ -1246,6 +1246,7 @@ const html = `
     /* Ensure checkboxes & lines print clearly */
     input[type="checkbox"] { width: 14px; height: 14px; }
     .credit-line { width: 1in; }
+    .notes { display: none !important; }
   }
 </style>
 </head>
@@ -1298,9 +1299,9 @@ const html = `
     </tbody>
   </table>
 
-  <p style="margin-top:10px; font-size:0.95em; color:#555;">
-    Notes: Skip weeks are locked at 0. Per-week limit is ${maxPerWeek}. The table won’t let you exceed your total target credits (${C}).
-  </p>
+ <p class="notes" style="margin-top:10px; font-size:0.95em; color:#555;">
+  Notes: Skip weeks are locked at 0. Per-week limit is 3. The table won’t let you exceed your total target credits (${C}).
+</p>
 </body>
 </html>
 `;
