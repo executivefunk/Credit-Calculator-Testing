@@ -1187,7 +1187,11 @@ const html = `
   }
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
  .topbar .tools {
-  margin-right: -5px; 
+  display: flex;
+  flex-direction: column;   /* keeps buttons stacked like now */
+  align-items: flex-start;  /* keeps them aligned left inside the group */
+  margin-left: auto;        /* pushes group to the right side of the topbar */
+  margin-right: 60px;       /* leave a little space for the Print button */
 }
   .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
 
