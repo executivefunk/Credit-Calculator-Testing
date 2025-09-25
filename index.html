@@ -1193,6 +1193,7 @@ const html = `
   <meta charset="utf-8">
   <title>Plan ${type} – Editable Credit Tracker</title>
  <style>
+  /* --- General screen styles --- */
   body { font-family: Arial, sans-serif; padding: 16px; }
   table { border-collapse: collapse; width: 100%; margin-top: 12px; table-layout: fixed; }
   th, td { border: 1px solid #ccc; padding: 6px; text-align: center; vertical-align: middle; }
@@ -1235,23 +1236,24 @@ const html = `
     width: clamp(0.4in, 12vw, 0.95in);
   }
 
-  /* Column widths (screen) — Week & Credits just wide enough for numbers */
-  col.col-week     { width: 5%; }    /* very narrow but still fits 2-digit */
+  /* Column widths (screen) */
+  col.col-week     { width: 5%; }
   col.col-date     { width: 18%; }
-  col.col-credits  { width: 6%; }    /* very narrow but still fits 2-digit */
-  col.col-progress { width: 51%; }   /* big expansion */
+  col.col-credits  { width: 6%; }
+  col.col-progress { width: 51%; }
   col.col-adjust   { width: 20%; }
 
   td.col-week, th.col-week,
   td.col-credits, th.col-credits { font-size: 0.85rem; }
 
-  /* Safety fallback for narrow screens */
-  @media (max-width: 900px) {
-    .col-progress .progress-grid {
-      grid-template-columns: repeat(2, 1fr);
-      row-gap: 6px;
-    }
-    .credit-line { width: clamp(0.45in, 20vw, 0.9in); }
+  /* Date cell: core date stays one line; note can sit underneath and wrap */
+  .col-date .date-core { white-space: nowrap !important; display: block !important; }
+  .col-date .date-note {
+    display: block !important;
+    white-space: normal !important;
+    font-size: 0.85em;
+    line-height: 1.1;
+    margin-top: 2px;
   }
 
   #printBtn {
@@ -1260,49 +1262,44 @@ const html = `
   }
   #printBtn:hover { background:#555; color:#fff; }
 
+  /* --- Print overrides --- */
   @media print {
-  /* Optional: tighter page margins to reclaim space */
-  @page {
-    size: letter portrait;
-    margin: 0.5in; /* change to 1in if required */
+    @page {
+      size: letter portrait;
+      margin: 0.5in; /* change to 1in if required */
+    }
+
+    #printBtn { display: none; }
+    .topbar .tools { display: none; }
+    th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
+
+    /* Rebalance widths for print */
+    col.col-week     { width: 5%; }
+    col.col-date     { width: 20%; }
+    col.col-credits  { width: 5%; }
+    col.col-progress { width: 70%; }
+
+    /* Row comfort */
+    th, td { padding: 8px 6px; }
+    tr { page-break-inside: avoid; }
+
+    /* Date cell behavior */
+    td.col-date { overflow: visible !important; text-overflow: clip !important; }
+    .col-date .date-core { white-space: nowrap !important; display: block !important; }
+    .col-date .date-note { white-space: normal !important; display: block !important; }
+
+    /* Progress formatting */
+    .col-progress .progress-grid {
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 6px;
+      justify-items: start;
+    }
+    .chk { font-size: 0.82rem; gap: 2px; }
+    .chk input { width: 12px; height: 12px; }
+    .credit-line { width: 0.9in !important; }
+
+    .notes { display: none !important; }
   }
-
-  #printBtn { display: none; }
-  .topbar .tools { display: none; }
-  th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
-
-  /* Rebalance column widths: squeeze Week, Date, Credits, give Progress more */
-  col.col-week     { width: 6%; }
-  col.col-date     { width: 16%; }  /* date stays single-line; note can wrap */
-  col.col-credits  { width: 6%; }
-  col.col-progress { width: 72%; }
-
-  /* Row comfort & page integrity */
-  th, td { padding: 8px 6px; }      /* a touch more vertical space on paper */
-  tr { page-break-inside: avoid; }  /* keep rows intact across pages */
-
-  /* Date column behavior on print:
-     - core date never wraps
-     - note may wrap below it (no clipping/ellipsis) */
-  td.col-date { overflow: visible; text-overflow: clip; }
-  .col-date .date-core { white-space: nowrap; }
-  .col-date .date-note { white-space: normal; }
-
-  /* Progress formatting on print */
-  .col-progress .progress-grid {
-    grid-template-columns: repeat(4, 1fr);
-    column-gap: 4px;         /* tighter to help fit */
-    justify-items: start;    /* align left to reclaim pixels */
-  }
-  .chk {
-    font-size: 0.82rem;
-    gap: 2px;
-  }
-  .chk input { width: 12px; height: 12px; } /* compact checkboxes */
-  .credit-line { width: 0.9in !important; } /* reliably fits 4 across */
-
-  .notes { display: none !important; }
-}
 </style>
 </head>
 <body>
