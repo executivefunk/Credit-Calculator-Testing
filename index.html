@@ -1135,6 +1135,26 @@ if (totalWeeksD > weeksRemaining) {
   // Open a new window
   const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
+   function formatDateForCell(str) {
+  // Handle parentheses notes: e.g. "Dec 22 - Dec 26 (Winter Break)"
+  const paren = str.match(/^(.*?)(\s*\((.+)\))$/);
+  if (paren) {
+    const core = paren[1].trim();     // e.g. "Dec 22 - Dec 26"
+    const note = paren[3].trim();     // e.g. "Winter Break"
+    return `<span class="date-core">${core}</span><span class="date-note">${note}</span>`;
+  }
+
+  // Handle dash notes: e.g. "Jan 19 - Jan 23 - End of Semester 1"
+  const dash = str.match(/^(.*?)-\s*(End of Semester.*|Graduation.*)$/i);
+  if (dash) {
+    const core = dash[1].trim();      // e.g. "Jan 19 - Jan 23"
+    const note = dash[2].trim();      // e.g. "End of Semester 1"
+    return `<span class="date-core">${core}</span><span class="date-note">${note}</span>`;
+  }
+
+  // Default: just return the date
+  return `<span class="date-core">${str}</span>`;
+}
 
  const rowsHtml = allWeeks.map(w => {
   const rowClass = w.skip ? ' class="skip-row"' : '';
@@ -1155,14 +1175,14 @@ if (totalWeeksD > weeksRemaining) {
   }).join('');
 
   return `
-    <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
-      <td class="col-week">${w.week}</td>
-      <td class="col-date">${dateRanges[w.week] || ''}</td>
-      <td class="col-credits"><strong class="val">${w.credits}</strong></td>
-      <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
-      <td class="controls col-adjust">${controls}</td>
-    </tr>
-  `;
+  <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
+    <td class="col-week">${w.week}</td>
+    <td class="col-date">${formatDateForCell(dateRanges[w.week] || '')}</td>
+    <td class="col-credits"><strong class="val">${w.credits}</strong></td>
+    <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
+    <td class="controls col-adjust">${controls}</td>
+  </tr>
+`;
 }).join('');
 
 // Write the static HTML (NO <script> tag here)
@@ -1244,7 +1264,7 @@ const html = `
   /* Optional: tighter page margins to reclaim space */
   @page {
     size: letter portrait;
-    margin: 0.5in; /* adjust if you must keep 1in margins */
+    margin: 0.5in; /* change to 1in if required */
   }
 
   #printBtn { display: none; }
@@ -1252,23 +1272,34 @@ const html = `
   th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
   /* Rebalance column widths: squeeze Week, Date, Credits, give Progress more */
-  col.col-week     { width: 6%; }   /* narrower */
-  col.col-date     { width: 16%; }  /* slimmer */
-  col.col-credits  { width: 6%; }   /* narrower */
-  col.col-progress { width: 72%; }  /* big expansion */
+  col.col-week     { width: 6%; }
+  col.col-date     { width: 16%; }  /* date stays single-line; note can wrap */
+  col.col-credits  { width: 6%; }
+  col.col-progress { width: 72%; }
 
-  /* Progress formatting */
+  /* Row comfort & page integrity */
+  th, td { padding: 8px 6px; }      /* a touch more vertical space on paper */
+  tr { page-break-inside: avoid; }  /* keep rows intact across pages */
+
+  /* Date column behavior on print:
+     - core date never wraps
+     - note may wrap below it (no clipping/ellipsis) */
+  td.col-date { overflow: visible; text-overflow: clip; }
+  .col-date .date-core { white-space: nowrap; }
+  .col-date .date-note { white-space: normal; }
+
+  /* Progress formatting on print */
   .col-progress .progress-grid {
     grid-template-columns: repeat(4, 1fr);
-    column-gap: 4px;         /* was 8px */
-    justify-items: start;    /* align items left for more room */
+    column-gap: 4px;         /* tighter to help fit */
+    justify-items: start;    /* align left to reclaim pixels */
   }
   .chk {
-    font-size: 0.82rem;      /* smaller text on print */
+    font-size: 0.82rem;
     gap: 2px;
   }
-  .chk input { width: 12px; height: 12px; } /* smaller checkboxes on print */
-  .credit-line { width: 0.9in !important; } /* slightly shorter so all 4 fit */
+  .chk input { width: 12px; height: 12px; } /* compact checkboxes */
+  .credit-line { width: 0.9in !important; } /* reliably fits 4 across */
 
   .notes { display: none !important; }
 }
