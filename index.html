@@ -1175,7 +1175,7 @@ const html = `
  <style>
   body { font-family: Arial, sans-serif; padding: 16px; }
   table { border-collapse: collapse; width: 100%; margin-top: 12px; table-layout: fixed; }
-  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; vertical-align: middle; } /* was 8px */
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; vertical-align: middle; }
   .skip-row { background: #ffd6d6; }
   .controls { display:flex; gap:8px; align-items:center; justify-content:center; }
   .controls button { padding: 4px 8px; }
@@ -1188,9 +1188,9 @@ const html = `
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
   .topbar .tools {
     display: flex; flex-direction: column; align-items: flex-start;
-    margin-left: auto; margin-right: 60px; /* space for Print button */
+    margin-left: auto; margin-right: 60px;
   }
-  .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.88em; }
+  .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.85em; }
 
   /* Progress: 4 items inside single Progress cell */
   .col-progress .progress-grid {
@@ -1204,7 +1204,7 @@ const html = `
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.85rem;   /* a touch smaller to free space */
+    font-size: 0.85rem;
     white-space: nowrap;
   }
   .chk input { width: 14px; height: 14px; }
@@ -1212,22 +1212,21 @@ const html = `
     display: inline-block;
     border-bottom: 1px solid #000;
     height: 1em;
-    width: clamp(0.40in, 12vw, 0.95in); /* shorter min on screen; exact 1in on print */
+    width: clamp(0.4in, 12vw, 0.95in);
   }
 
-  /* Column widths (SCREEN) — free up Progress heavily */
-  col.col-week     { width: 6%; }    /* narrower */
-  col.col-date     { width: 18%; }   /* slimmer date */
-  col.col-credits  { width: 7%; }    /* narrower */
-  col.col-progress { width: 49%; }   /* big boost */
+  /* Column widths (screen) — Week & Credits just wide enough for numbers */
+  col.col-week     { width: 5%; }    /* very narrow but still fits 2-digit */
+  col.col-date     { width: 18%; }
+  col.col-credits  { width: 6%; }    /* very narrow but still fits 2-digit */
+  col.col-progress { width: 51%; }   /* big expansion */
   col.col-adjust   { width: 20%; }
 
-  /* Slightly smaller text in the tight columns */
   td.col-week, th.col-week,
   td.col-credits, th.col-credits { font-size: 0.85rem; }
 
-  /* Optional: if viewport is still tight, allow a 2×2 grid fallback */
-  @media (max-width: 1000px) {
+  /* Safety fallback for narrow screens */
+  @media (max-width: 900px) {
     .col-progress .progress-grid {
       grid-template-columns: repeat(2, 1fr);
       row-gap: 6px;
@@ -1246,14 +1245,14 @@ const html = `
     .topbar .tools { display:none; }
     th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
-    /* Print: give Progress most of the row */
-    col.col-week     { width: 10%; }
+    /* Print: maximize Progress space */
+    col.col-week     { width: 8%; }
     col.col-date     { width: 20%; }
-    col.col-credits  { width: 10%; }
-    col.col-progress { width: 60%; }
+    col.col-credits  { width: 8%; }
+    col.col-progress { width: 64%; }
 
     .col-progress .progress-grid { grid-template-columns: repeat(4, 1fr); }
-    .credit-line { width: 1in; } /* exact 1 inch on paper */
+    .credit-line { width: 1in; }
     .notes { display: none !important; }
   }
 </style>
