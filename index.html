@@ -1142,7 +1142,7 @@ if (totalWeeksD > weeksRemaining) {
     ? '<em>Skip</em>'
     : '<button class="minus">–</button><button class="plus">+</button>';
 
-  // 4 progress checkboxes, each with a 1-inch line
+  // 4 items: [checkbox] [number] [one-inch line], laid out in a mini 4-column grid
   const boxes = [1, 2, 3, 4].map(i => {
     const id = `wk${w.week}-c${i}`;
     return `
@@ -1159,7 +1159,7 @@ if (totalWeeksD > weeksRemaining) {
       <td class="col-week">${w.week}</td>
       <td class="col-date">${dateRanges[w.week] || ''}</td>
       <td class="col-credits"><strong class="val">${w.credits}</strong></td>
-      <td class="col-progress"><div class="checkboxes">${boxes}</div></td>
+      <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
       <td class="controls col-adjust">${controls}</td>
     </tr>
   `;
@@ -1195,59 +1195,49 @@ const html = `
 }
   .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
 
-  /* Progress: 1–4 checkboxes, each with a 1-inch write line */
-  .checkboxes {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .chk {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.95rem;
-    white-space: nowrap;
-  }
-  .credit-line {
-    display: inline-block;
-    border-bottom: 1px solid #000;
-    width: 1in;       /* one-inch line */
-    margin-left: 4px; /* small gap after the number */
-    height: 1em;
-  }
+  /* Progress cell as a 4-column grid */
+.col-progress .progress-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  justify-items: center;   /* center each mini-column */
+  align-items: center;
+}
 
-  /* Column widths for screen */
-  col.col-week     { width: 12%; }
-  col.col-date     { width: 22%; }  /* slimmer Date Range */
-  col.col-credits  { width: 14%; }
-  col.col-progress { width: 32%; }
-  col.col-adjust   { width: 20%; }
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
 
-  #printBtn {
-    position: fixed; top: 16px; right: 16px; background-color: white; color: black;
-    border: 1px solid black; padding: 8px 12px; border-radius: 6px; cursor: pointer; z-index: 9;
-  }
-  #printBtn:hover { background:#555; color:#fff; }
+.credit-line {
+  display: inline-block;
+  border-bottom: 1px solid #000;
+  width: 1in;   /* one-inch line */
+  height: 1em;
+}
 
-  @media print {
-    #printBtn { display:none; }
-    .topbar .tools { display:none; }
+/* (You can keep your existing column widths) */
+col.col-week     { width: 12%; }
+col.col-date     { width: 22%; }  /* slimmer Date Range */
+col.col-credits  { width: 14%; }
+col.col-progress { width: 32%; }  /* contains the 4 mini-columns */
+col.col-adjust   { width: 20%; }
 
-    /* Hide Adjust column on paper */
-    th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
+@media print {
+  th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
-    /* Rebalance widths without Adjust */
-    col.col-week     { width: 15%; }
-    col.col-date     { width: 25%; }
-    col.col-credits  { width: 15%; }
-    col.col-progress { width: 45%; }
+  col.col-week     { width: 15%; }
+  col.col-date     { width: 25%; }
+  col.col-credits  { width: 15%; }
+  col.col-progress { width: 45%; }
 
-    /* Ensure checkboxes & lines print clearly */
-    input[type="checkbox"] { width: 14px; height: 14px; }
-    .credit-line { width: 1in; }
-    .notes { display: none !important; }
-  }
+  input[type="checkbox"] { width: 14px; height: 14px; }
+  .credit-line { width: 1in; }
+  .notes { display: none !important; }
+}
 </style>
 </head>
 <body>
