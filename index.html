@@ -1172,10 +1172,10 @@ const html = `
 <head>
   <meta charset="utf-8">
   <title>Plan ${type} – Editable Credit Tracker</title>
-  <style>
+ <style>
   body { font-family: Arial, sans-serif; padding: 16px; }
   table { border-collapse: collapse; width: 100%; margin-top: 12px; table-layout: fixed; }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; vertical-align: middle; }
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; vertical-align: middle; } /* was 8px */
   .skip-row { background: #ffd6d6; }
   .controls { display:flex; gap:8px; align-items:center; justify-content:center; }
   .controls button { padding: 4px 8px; }
@@ -1187,13 +1187,10 @@ const html = `
   }
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
   .topbar .tools {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-left: auto;
-    margin-right: 60px; /* space for Print button */
+    display: flex; flex-direction: column; align-items: flex-start;
+    margin-left: auto; margin-right: 60px; /* space for Print button */
   }
-  .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.9em; }
+  .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.88em; }
 
   /* Progress: 4 items inside single Progress cell */
   .col-progress .progress-grid {
@@ -1206,23 +1203,37 @@ const html = `
   .chk {
     display: inline-flex;
     align-items: center;
-    gap: 3px;              /* tighter */
-    font-size: 0.88rem;    /* slightly smaller to avoid cramping */
+    gap: 3px;
+    font-size: 0.85rem;   /* a touch smaller to free space */
     white-space: nowrap;
   }
+  .chk input { width: 14px; height: 14px; }
   .credit-line {
     display: inline-block;
     border-bottom: 1px solid #000;
     height: 1em;
-    width: clamp(0.45in, 12vw, 1in);  /* flexible on screen, exact on print */
+    width: clamp(0.40in, 12vw, 0.95in); /* shorter min on screen; exact 1in on print */
   }
 
-  /* Column widths (screen) */
-  col.col-week     { width: 8%; }   /* narrower */
-  col.col-date     { width: 20%; }
-  col.col-credits  { width: 9%; }   /* narrower */
-  col.col-progress { width: 43%; }  /* wider to fit 4 items */
+  /* Column widths (SCREEN) — free up Progress heavily */
+  col.col-week     { width: 6%; }    /* narrower */
+  col.col-date     { width: 18%; }   /* slimmer date */
+  col.col-credits  { width: 7%; }    /* narrower */
+  col.col-progress { width: 49%; }   /* big boost */
   col.col-adjust   { width: 20%; }
+
+  /* Slightly smaller text in the tight columns */
+  td.col-week, th.col-week,
+  td.col-credits, th.col-credits { font-size: 0.85rem; }
+
+  /* Optional: if viewport is still tight, allow a 2×2 grid fallback */
+  @media (max-width: 1000px) {
+    .col-progress .progress-grid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 6px;
+    }
+    .credit-line { width: clamp(0.45in, 20vw, 0.9in); }
+  }
 
   #printBtn {
     position: fixed; top: 16px; right: 16px; background-color: white; color: black;
@@ -1230,33 +1241,19 @@ const html = `
   }
   #printBtn:hover { background:#555; color:#fff; }
 
-  /* Optional responsive fallback: 2×2 grid if viewport is very narrow */
-  @media (max-width: 900px) {
-    .col-progress .progress-grid {
-      grid-template-columns: repeat(2, 1fr);
-      row-gap: 6px;
-    }
-    .credit-line { width: clamp(0.5in, 20vw, 0.9in); }
-  }
-
   @media print {
     #printBtn { display:none; }
     .topbar .tools { display:none; }
-
-    /* Hide Adjust column on paper */
     th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
-    /* Rebalance widths for print */
-    col.col-week     { width: 12%; }
-    col.col-date     { width: 24%; }
-    col.col-credits  { width: 12%; }
-    col.col-progress { width: 52%; }
+    /* Print: give Progress most of the row */
+    col.col-week     { width: 10%; }
+    col.col-date     { width: 20%; }
+    col.col-credits  { width: 10%; }
+    col.col-progress { width: 60%; }
 
-    input[type="checkbox"] { width: 14px; height: 14px; }
-    .col-progress .progress-grid {
-      grid-template-columns: repeat(4, 1fr); /* always 4 across on paper */
-    }
-    .credit-line { width: 1in; }  /* true 1 inch on print */
+    .col-progress .progress-grid { grid-template-columns: repeat(4, 1fr); }
+    .credit-line { width: 1in; } /* exact 1 inch on paper */
     .notes { display: none !important; }
   }
 </style>
