@@ -219,7 +219,7 @@ select {
     line-height: 1.1em;
   }
 }
-  #printButton {
+ #printButton {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -234,20 +234,12 @@ select {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s, color 0.3s;
 }
+#printButton:hover { background-color: #555; color: white; }
 
-#printButton:hover {
-  background-color: #555;
-  color: white;
-}
-
+/* ✅ One single print block only */
 @media print {
-  #printButton {
-    display: none;
-  }
-}
+  #printButton { display: none; }
 
-/* ✅ This MUST be outside the above block */
-@media print {
   body {
     background: white !important;
     margin: 0;
@@ -261,35 +253,30 @@ select {
     padding: 20px !important;
   }
 
-  .print-page-1 {
-    page-break-after: always;
-  }
+  .print-page-1 { page-break-after: always; }
 
-  #langToggleBtn,
-  #languagePrompt {
-    display: none !important;
-  }
-   table, tr, td, th {
+  #langToggleBtn, #languagePrompt { display: none !important; }
+
+  table, tr, td, th {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
-  @media print {
-  .force-page-break {
-    page-break-before: always !important;
-  }
+
+  .force-page-break { page-break-before: always !important; }
+}
 }
 </>
 </head>
 <body>
 
- <div id="languagePrompt" ="display: none; justify-content: center; padding-top: 20px;">
+<div id="languagePrompt" style="display: none; justify-content: center; padding-top: 20px;">
   <div class="prompt-container">
     <div>
       <p ="text-align: center; font-weight: bold; font-size: 1.8em; margin-bottom: 20px;">
         Weekly Credit Calculator
       </p>
 
-      <div onclick="setLanguage(false)" ="
+      <div onclick="setLanguage(false)" style="
   background-color: #fff89a;
   color: #333;
   text-align: center;
@@ -301,10 +288,10 @@ select {
   margin-top: 10px;
 ">
   <strong>English - Inglés</strong><br>
-  <span ="font-size: 0.64em !important;">Click Here</span>
+  <span style="font-size: 0.64em !important;">Click Here</span>
 </div>
 
-<div onclick="setLanguage(true)" ="
+<div onclick="setLanguage(true)" style="
   background-color: #fff89a;
   color: #333;
   text-align: center;
@@ -316,7 +303,7 @@ select {
   margin-top: 10px;
 ">
   <strong>Español - Spanish</strong><br>
-  <span ="font-size: 0.64em !important;">Click Here</span>
+  <span style="font-size: 0.64em !important;">Click Here</span>
 </div>
     </div>
   </div>
@@ -332,10 +319,10 @@ select {
 
   <div class="print-page-1">
     <h2>Weekly Credit Calculator</h2>
-    <p id="currentDate" ="text-align: center; font-weight: bold; margin-top: -10px;"></p>
-    <p id="currentWeek" ="text-align: center; font-size: 1.1em; margin-bottom: 15px;"></p>
+    <p id="currentDate" style="text-align: center; font-weight: bold; margin-top: -10px;"></p>
+    <p id="currentWeek" style="text-align: center; font-size: 1.1em; margin-bottom: 15px;"></p>
 
-    <div id="mainDisclaimer" class="disclaimer" ="margin-bottom: 15px;">
+    <div id="mainDisclaimer" class="disclaimer" style="margin-bottom: 15px;">
       This calculator is designed for students who plan to graduate this school year.
       <br><br>
       If you’re planning to graduate next year or later, you can still use it to set a credit goal for the school year or semester.
@@ -1281,43 +1268,45 @@ const html = `
 
   /* --- Print overrides --- */
   @media print {
-    @page {
-      size: letter portrait;
-      margin: 0.5in; /* change to 1in if required */
-    }
-
-    #printBtn { display: none; }
-    .topbar .tools { display: none; }
-    .print-tips { display: none !important; }  /* hide tips when printing */
-    th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
-
-    /* Rebalance widths for print */
-    col.col-week     { width: 5%; }
-    col.col-date     { width: 20%; }
-    col.col-credits  { width: 5%; }
-    col.col-progress { width: 70%; }
-
-    /* Row comfort */
-    th, td { padding: 8px 6px; }
-    tr { page-break-inside: avoid; }
-
-    /* Date cell behavior */
-    td.col-date { overflow: visible !important; text-overflow: clip !important; }
-    .col-date .date-core { white-space: nowrap !important; display: block !important; }
-    .col-date .date-note { white-space: normal !important; display: block !important; }
-
-    /* Progress formatting */
-    .col-progress .progress-grid {
-      grid-template-columns: repeat(4, 1fr);
-      column-gap: 6px;
-      justify-items: start;
-    }
-    .chk { font-size: 0.82rem; gap: 2px; }
-    .chk input { width: 12px; height: 12px; }
-    .credit-line { width: 0.9in !important; }
-
-    .notes { display: none !important; }
+  @page {
+    size: letter portrait;
+    margin: 0.5in;
   }
+
+  /* Hide UI on paper */
+  #printBtn { display: none; }
+  .topbar .tools { display: none; }
+  .print-tips { display: none !important; }
+  th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
+
+  /* Column widths to prevent wrapping and keep 4 items in Progress */
+  col.col-week     { width: 5%; }
+  col.col-date     { width: 20%; }
+  col.col-credits  { width: 5%; }
+  col.col-progress { width: 70%; }
+
+  /* Comfortable rows + avoid splitting */
+  th, td { padding: 8px 6px; }
+  tr { page-break-inside: avoid; }
+
+  /* Date behavior: core on one line, note below */
+  td.col-date { overflow: visible !important; text-overflow: clip !important; }
+  .col-date .date-core { white-space: nowrap !important; display: block !important; }
+  .col-date .date-note { white-space: normal !important; display: block !important; }
+
+  /* Progress layout: 4 across, compact spacing */
+  .col-progress .progress-grid {
+    grid-template-columns: repeat(4, 1fr);
+    column-gap: 6px;
+    justify-items: start;
+  }
+  .chk { font-size: 0.82rem; gap: 2px; }
+  .chk input { width: 12px; height: 12px; }
+  .credit-line { width: 0.9in !important; }
+
+  /* Hide screen-only notes */
+  .notes { display: none !important; }
+}
 </style>
 </head>
 <body>
