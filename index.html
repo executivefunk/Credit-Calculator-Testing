@@ -404,7 +404,30 @@ select {
 } catch (e) {
   alert("Script error: " + e.message);
 }
-    let isSpanish = false;
+
+// === Feature flags ===
+const FEATURES = { dualEnrollment: false }; // flip to true to enable/show
+
+// (Optional) URL/localStorage toggle: ?dual=on / ?dual=off, or window.setDual(true/false)
+(() => {
+  const url = new URL(location.href);
+  const q = url.searchParams.get('dual');
+  if (q === 'on') FEATURES.dualEnrollment = true;
+  if (q === 'off') FEATURES.dualEnrollment = false;
+
+  const saved = localStorage.getItem('feature.dualEnrollment');
+  if (saved !== null) FEATURES.dualEnrollment = saved === 'true';
+
+  window.setDual = (enabled) => {
+    FEATURES.dualEnrollment = !!enabled;
+    localStorage.setItem('feature.dualEnrollment', String(enabled));
+    if (typeof calculateCredits === 'function') {
+      try { calculateCredits(); } catch {}
+    }
+  };
+})();
+
+let isSpanish = false;
     function getText(key) {
   const map = {
     "Credits Needed": ["Credits Needed", "Créditos Necesarios"],
@@ -900,32 +923,38 @@ if (totalCredits <= weeksRemaining) {
 
 let planCNote = `<li><strong>${getText("Plan C")}:</strong> ${planCText}</li>`;
       // ✅ Dual Enrollment Recommendation
-const dualEnrollmentWeeklyAvg = totalCredits / weeksRemaining;
-let dualEnrollmentMessage = "";
+// ✅ Dual Enrollment (feature-gated)
+let dualEnrollmentMarkup = "";
+if (FEATURES.dualEnrollment) {
+  const dualEnrollmentWeeklyAvg = totalCredits / weeksRemaining;
+  let dualEnrollmentMessage = "";
 
-if (dualEnrollmentWeeklyAvg <= 1.5) {
-  dualEnrollmentMessage = isSpanish
-    ? "✅ Seguro – Carga manejable y con buen margen"
-    : "✅ Safe – Strong buffer and manageable load";
-} else if (dualEnrollmentWeeklyAvg <= 2.0) {
-  dualEnrollmentMessage = isSpanish
-    ? "✅ Mayormente seguro – Razonable, pero monitorear consistencia"
-    : "✅ Mostly Safe – Reasonable, monitor consistency";
-} else if (dualEnrollmentWeeklyAvg <= 2.5) {
-  dualEnrollmentMessage = isSpanish
-    ? "⚠️ Precaución – Solo si el estudiante demuestra alta constancia."
-    : "⚠️ Caution – Only consider if student is highly consistent";
-} else {
-  dualEnrollmentMessage = isSpanish
-    ? "🚫 No recomendable – Ritmo semanal alto; DE podría causar retrasos"
-    : "🚫 Not Advisable – Weekly pace too high; DE likely to cause setbacks";
+  if (dualEnrollmentWeeklyAvg <= 1.5) {
+    dualEnrollmentMessage = isSpanish
+      ? "✅ Seguro – Carga manejable y con buen margen"
+      : "✅ Safe – Strong buffer and manageable load";
+  } else if (dualEnrollmentWeeklyAvg <= 2.0) {
+    dualEnrollmentMessage = isSpanish
+      ? "✅ Mayormente seguro – Razonable, pero monitorear consistencia"
+      : "✅ Mostly Safe – Reasonable, monitor consistency";
+  } else if (dualEnrollmentWeeklyAvg <= 2.5) {
+    dualEnrollmentMessage = isSpanish
+      ? "⚠️ Precaución – Solo si el estudiante demuestra alta constancia."
+      : "⚠️ Caution – Only consider if student is highly consistent";
+  } else {
+    dualEnrollmentMessage = isSpanish
+      ? "🚫 No recomendable – Ritmo semanal alto; DE podría causar retrasos"
+      : "🚫 Not Advisable – Weekly pace too high; DE likely to cause setbacks";
+  }
+
+  dualEnrollmentMarkup = `<p><strong>Dual Enrollment:</strong> ${dualEnrollmentMessage}</p>`;
 }
 
       const result = `
   <p><strong>${getText("Credits Needed")}:</strong> ${totalCredits}</p>
   <p><strong>${getText("Weeks Remaining")}:</strong> ${weeksRemaining}</p>
   <p><strong>${getText("Average Credits per Week")}:</strong> ${weeklyAvg}</p>
-  <p><strong>Dual Enrollment:</strong> ${dualEnrollmentMessage}</p>
+    ${dualEnrollmentMarkup}
   <p><strong>${getText("Risk Level")}:</strong> ${getText(riskLevel)}</p>
   <p><strong>${getText("Suggestion")}:</strong> ${getText(suggestion)}</p>
   ${bufferWarning}
@@ -952,7 +981,8 @@ if (dualEnrollmentWeeklyAvg <= 1.5) {
   planANote,
   planBNote,
   planCNote,
-  planDNote
+  planDNote,
+  dualEnrollmentMarkup
 };
 
       // Disable Plan C button if Plan A exceeds weeks
@@ -999,25 +1029,26 @@ if (totalWeeksD > weeksRemaining) {
   if (!lastResultData) return;
 
   const {
-    totalCredits,
-    weeksRemaining,
-    weeklyAvg,
-    riskLevel,
-    suggestion,
-    bufferWarningKey,
-    strongStart,
-    planANote,
-    planBNote,
-    planCNote,
-    planDNote
-  } = lastResultData;
-
+  totalCredits,
+  weeksRemaining,
+  weeklyAvg,
+  riskLevel,
+  suggestion,
+  bufferWarningKey,
+  strongStart,
+  planANote,
+  planBNote,
+  planCNote,
+  planDNote,
+  dualEnrollmentMarkup
+} = lastResultData;
   const bufferWarning = bufferWarningKey ? `<div class='warning'>${getText(bufferWarningKey)}</div>` : "";
 
   const result = `
     <p><strong>${getText("Credits Needed")}:</strong> ${totalCredits}</p>
     <p><strong>${getText("Weeks Remaining")}:</strong> ${weeksRemaining}</p>
     <p><strong>${getText("Average Credits per Week")}:</strong> ${weeklyAvg}</p>
+        ${dualEnrollmentMarkup || ""}
     <p><strong>${getText("Risk Level")}:</strong> ${getText(riskLevel)}</p>
     <p><strong>${getText("Suggestion")}:</strong> ${getText(suggestion)}</p>
     ${bufferWarning}
