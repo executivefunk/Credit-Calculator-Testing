@@ -278,18 +278,18 @@ select {
     page-break-before: always !important;
   }
 }
-</style>
+</>
 </head>
 <body>
 
- <div id="languagePrompt" style="display: none; justify-content: center; padding-top: 20px;">
+ <div id="languagePrompt" ="display: none; justify-content: center; padding-top: 20px;">
   <div class="prompt-container">
     <div>
-      <p style="text-align: center; font-weight: bold; font-size: 1.8em; margin-bottom: 20px;">
+      <p ="text-align: center; font-weight: bold; font-size: 1.8em; margin-bottom: 20px;">
         Weekly Credit Calculator
       </p>
 
-      <div onclick="setLanguage(false)" style="
+      <div onclick="setLanguage(false)" ="
   background-color: #fff89a;
   color: #333;
   text-align: center;
@@ -301,10 +301,10 @@ select {
   margin-top: 10px;
 ">
   <strong>English - Inglés</strong><br>
-  <span style="font-size: 0.64em !important;">Click Here</span>
+  <span ="font-size: 0.64em !important;">Click Here</span>
 </div>
 
-<div onclick="setLanguage(true)" style="
+<div onclick="setLanguage(true)" ="
   background-color: #fff89a;
   color: #333;
   text-align: center;
@@ -316,7 +316,7 @@ select {
   margin-top: 10px;
 ">
   <strong>Español - Spanish</strong><br>
-  <span style="font-size: 0.64em !important;">Click Here</span>
+  <span ="font-size: 0.64em !important;">Click Here</span>
 </div>
     </div>
   </div>
@@ -326,16 +326,16 @@ select {
 
   <!-- Actual calculator container (hidden at first) -->
   <div class="container">
-  <div style="text-align: center; margin-bottom: 10px;">
+  <div ="text-align: center; margin-bottom: 10px;">
     <button id="langToggleBtn" onclick="showLanguagePrompt()">Español</button>
   </div>
 
   <div class="print-page-1">
     <h2>Weekly Credit Calculator</h2>
-    <p id="currentDate" style="text-align: center; font-weight: bold; margin-top: -10px;"></p>
-    <p id="currentWeek" style="text-align: center; font-size: 1.1em; margin-bottom: 15px;"></p>
+    <p id="currentDate" ="text-align: center; font-weight: bold; margin-top: -10px;"></p>
+    <p id="currentWeek" ="text-align: center; font-size: 1.1em; margin-bottom: 15px;"></p>
 
-    <div id="mainDisclaimer" class="disclaimer" style="margin-bottom: 15px;">
+    <div id="mainDisclaimer" class="disclaimer" ="margin-bottom: 15px;">
       This calculator is designed for students who plan to graduate this school year.
       <br><br>
       If you’re planning to graduate next year or later, you can still use it to set a credit goal for the school year or semester.
@@ -1262,6 +1262,23 @@ const html = `
   }
   #printBtn:hover { background:#555; color:#fff; }
 
+  /* --- Print Tips bar (screen only) --- */
+  .print-tips {
+    background: #fff3cd;           /* soft yellow */
+    border: 1px solid #ffe49a;
+    color: #6b5b00;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin: 8px 0 14px;
+    font-size: 0.95rem;
+  }
+  .print-tips strong { font-weight: 700; }
+  .print-tips ul {
+    margin: 6px 0 0 1.1em;
+    padding: 0;
+  }
+  .print-tips li { margin: 2px 0; }
+
   /* --- Print overrides --- */
   @media print {
     @page {
@@ -1271,6 +1288,7 @@ const html = `
 
     #printBtn { display: none; }
     .topbar .tools { display: none; }
+    .print-tips { display: none !important; }  /* hide tips when printing */
     th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
     /* Rebalance widths for print */
@@ -1323,6 +1341,13 @@ const html = `
       <button id="btnFill2">Fill remaining as 2s</button>
       <button id="btnClear">Clear all to 0</button>
     </div>
+    <div class="print-tips">
+  <strong>Print Tips:</strong> For best results, set your printer settings to:
+  <ul>
+    <li><span>Margins:</span> <strong>Minimum</strong></li>
+    <li><span>Enable</span> <strong>Background Graphics</strong></li>
+  </ul>
+</div>
   </div>
 
   <h2>Credit Tracker – Plan ${type}
