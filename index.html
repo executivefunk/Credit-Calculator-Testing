@@ -1208,10 +1208,10 @@ const rowsHtml = allWeeks.map((w, idx) => {
 
   rowCount++;
 
-  // soft page break every N rows on narrow screens (don’t put after the last data row)
-  if (isNarrow && rowCount % chunk === 0 && idx < allWeeks.length - 1) {
-    html += `<tr class="page-break"><td colspan="5"></td></tr>`;
-  }
+  /* 🔒 Force a page break after row 30 — only on mobile (narrow screens) */
+if (isNarrow && rowCount === 30 && idx < allWeeks.length - 1) {
+  html += `<tr class="page-break"><td colspan="5"></td></tr>`;
+}
 
   return html;
 }).join('');
