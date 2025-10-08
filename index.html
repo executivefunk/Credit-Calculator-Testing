@@ -1269,6 +1269,45 @@ const html = `
     padding: 8px 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr;
     gap: 8px; align-items:center; z-index: 5;
   }
+  /* Summary bar look (screen) */
+.summarywrap {
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: #fafafa;
+}
+
+.summarybar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* refine badge look to match screenshot */
+.summarybar .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 0.82rem;
+  border: 1px solid #bfbfbf;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.summarybar .badge strong {
+  font-weight: 700;
+  display: inline-block;
+  min-width: 1.2em;  /* keeps numbers from jittering */
+  text-align: right;
+}
+
+.summarybar .badge-lg {
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-color: #a8a8a8;
+}
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
   .topbar .tools {
     display: flex; flex-direction: column; align-items: flex-start;
@@ -1472,37 +1511,42 @@ td, th { padding-top: 5px !important; padding-bottom: 5px !important; }  /* was 
 body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 table:last-of-type { margin-bottom: 0 !important; }
 }
+.summarywrap { border-color: #d0d0d0; background: #fff; }
+.summarybar .badge { border-color: #bdbdbd; }
 </style>
 </head>
 <body>
   <button id="printBtn" onclick="window.print()">Print</button>
 
   <div class="topbar">
-    <div class="nums">
-      <span class="badge">Target: <strong id="tgt">${C}</strong></span>
-      <span class="badge">Assigned: <strong id="asgn">0</strong></span>
-      <span class="badge">Remaining: <strong id="rem">0</strong></span>
-    </div>
-    <div class="nums">
+  <div class="summarywrap">
+    <div class="summarybar">
+      <span class="badge badge-lg">Target: <strong id="tgt">${C}</strong></span>
+      <span class="badge badge-lg">Assigned: <strong id="asgn">0</strong></span>
+      <span class="badge badge-lg">Remaining: <strong id="rem">0</strong></span>
+
       <span class="badge">0s: <strong id="c0">0</strong></span>
       <span class="badge">1s: <strong id="c1">0</strong></span>
       <span class="badge">2s: <strong id="c2">0</strong></span>
       <span class="badge">3s: <strong id="c3">0</strong></span>
       ${maxPerWeek === 4 ? '<span class="badge">4s: <strong id="c4">0</strong></span>' : ''}
     </div>
-    <div class="tools">
-      <button id="btnSpread1">Spread 1-credit weeks evenly</button>
-      <button id="btnFill2">Spread 2-credit weeks evenly</button>
-      <button id="btnClear">Clear all to 0</button>
-    </div>
-    <div class="print-tips">
-  <strong>Print Tips:</strong> For best results, set your printer settings to:
-  <ul>
-    <li>Margins: <strong>Minimum</strong></li>
-    <li>Enable <strong>Background Graphics</strong></li>
-  </ul>
-</div>
   </div>
+
+  <div class="tools">
+    <button id="btnSpread1">Spread 1-credit weeks evenly</button>
+    <button id="btnFill2">Spread 2-credit weeks evenly</button>
+    <button id="btnClear">Clear all to 0</button>
+  </div>
+
+  <div class="print-tips">
+    <strong>Print Tips:</strong> For best results, set your printer settings to:
+    <ul>
+      <li>Margins: <strong>Minimum</strong></li>
+      <li>Enable <strong>Background Graphics</strong></li>
+    </ul>
+  </div>
+</div>
 
   <h2>Credit Tracker – Plan ${type}
     <span style="font-weight: normal; font-size: 0.6em;"> - (Credit completion is allowed during self-selected “0” credit weeks.)</span>
