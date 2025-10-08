@@ -1177,7 +1177,7 @@ if (totalWeeksD > weeksRemaining) {
 const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
 const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
 const shouldSplit = isIOS || isSmallViewport;  // <— use this below
-const splitAfter = 15;
+const splitAfter = 16;
 
 let rowCount = 0;
 let part1 = '';
@@ -1445,6 +1445,23 @@ const html = `
 
   /* Hide screen-only notes */
   .notes { display: none !important; }
+    /* Hide screen-only notes */
+  .notes { display: none !important; }
+
+  /* Slightly tighter print to fit in 2 pages on phones */
+  .topbar {
+    padding: 4px 8px;         /* was 8px 12px */
+    margin-bottom: 6px;       /* was 8px */
+    grid-template-columns: 1fr; /* stack badges vertically */
+    row-gap: 4px;
+  }
+  .badge { padding: 2px 4px; font-size: 0.78em; }
+
+  th, td { padding: 6px 4px; }     /* was 8px 6px */
+  table { line-height: 1.12; }     /* was 1.15 */
+
+  /* (optional) if still tight, trim progress lines slightly */
+  .credit-line { width: 0.80in !important; } /* was 0.86in */
 }
 </style>
 </head>
