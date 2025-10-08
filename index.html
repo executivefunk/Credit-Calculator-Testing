@@ -1297,51 +1297,52 @@ const html = `
   .print-tips li { margin: 2px 0; }
 
   /* --- Print overrides --- */
-  @media print {
+@media print {
   @page {
     size: letter portrait;
     margin: 0.5in;
   }
 
-  /* Hide UI on paper */
+  /* Hide on-paper UI elements */
   #printBtn { display: none; }
-  .topbar .tools { display: none; }
+  .topbar .tools { display: none !important; }
   .print-tips { display: none !important; }
   th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
-    /* Reserve space so the fixed bar doesn’t overlap the table */
-  body { padding-top: 1.1in; } /* adjust to taste */
+  /* ✅ Summary bar: show only once, at top of page 1 */
+  body { padding-top: 0 !important; }
+  .topbar {
+    position: static !important;       /* normal flow, not fixed */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    background: #fff;
 
-  .topbar{
-    position: fixed !important;
-    top: 0.5in;              /* align with your @page margins */
-    left: 0.5in;
-    right: 0.5in;
-    z-index: 9999;
-    page-break-after: avoid; /* keep table from jumping above it */
-    background: #fff;        /* ensures it prints cleanly over white */
+    page-break-before: avoid;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+    break-before: avoid;
+    break-inside: avoid;
+    break-after: avoid;
   }
 
-  /* Hide screen-only tools in print */
-  .topbar .tools,
-  .print-tips { display: none !important; }
-
-  /* Column widths to prevent wrapping and keep 4 items in Progress */
+  /* Column widths to prevent wrapping and keep layout consistent */
   col.col-week     { width: 5%; }
   col.col-date     { width: 20%; }
   col.col-credits  { width: 5%; }
   col.col-progress { width: 70%; }
 
-  /* Comfortable rows + avoid splitting */
+  /* Comfortable row spacing + prevent splitting rows */
   th, td { padding: 8px 6px; }
   tr { page-break-inside: avoid; }
 
-  /* Date behavior: core on one line, note below */
+  /* Date behavior: main line + note line under it */
   td.col-date { overflow: visible !important; text-overflow: clip !important; }
   .col-date .date-core { white-space: nowrap !important; display: block !important; }
   .col-date .date-note { white-space: normal !important; display: block !important; }
 
-  /* Progress layout: 4 across, compact spacing */
+  /* Progress grid stays aligned */
   .col-progress .progress-grid {
     grid-template-columns: repeat(4, 1fr);
     column-gap: 6px;
@@ -1351,7 +1352,7 @@ const html = `
   .chk input { width: 12px; height: 12px; }
   .credit-line { width: 0.9in !important; }
 
-  /* Hide screen-only notes */
+  /* Hide any extra on-screen notes */
   .notes { display: none !important; }
 }
 </style>
