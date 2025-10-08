@@ -1177,7 +1177,7 @@ if (totalWeeksD > weeksRemaining) {
 const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
 const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
 const shouldSplit = isIOS || isSmallViewport;  // <— use this below
-const splitAfter = 16;
+const splitAfter = 15;
 
 let rowCount = 0;
 let part1 = '';
@@ -1462,6 +1462,15 @@ const html = `
 
   /* (optional) if still tight, trim progress lines slightly */
   .credit-line { width: 0.80in !important; } /* was 0.86in */
+  /* Tighten tables slightly so page 2 always fits */
+table.planner { margin-top: 6px !important; margin-bottom: 6px !important; }
+thead th { padding-top: 4px !important; padding-bottom: 4px !important; }
+td, th { padding-top: 5px !important; padding-bottom: 5px !important; }  /* was 6–8px */
+
+/* Already present? Keep these at the end so they take precedence */
+.credit-line { width: 0.78in !important; } /* was 0.80in */
+body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+table:last-of-type { margin-bottom: 0 !important; }
 }
 </style>
 </head>
