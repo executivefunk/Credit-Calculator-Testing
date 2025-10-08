@@ -1216,17 +1216,6 @@ const rowsHtml = allWeeks.map((w, idx) => {
   return html;
 }).join('');
 
-  return `
-  <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
-    <td class="col-week">${w.week}</td>
-    <td class="col-date">${formatDateForCell(dateRanges[w.week] || '')}</td>
-    <td class="col-credits"><strong class="val">${w.credits}</strong></td>
-    <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
-    <td class="controls col-adjust">${controls}</td>
-  </tr>
-`;
-}).join('');
-
 // Write the static HTML (NO <script> tag here)
 const html = `
 <!doctype html>
