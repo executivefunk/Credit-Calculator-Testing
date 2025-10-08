@@ -1175,7 +1175,7 @@ if (totalWeeksD > weeksRemaining) {
 
  // Build rows *with* soft page breaks for narrow screens (iOS/iPhone)
 const isNarrow = (printWin.innerWidth || 0) <= 820;   // simple phone/tablet heuristic
-const chunk = 21;                                     // try 18–22 if you need to tune
+const chunk = 20;                                     // try 18–22 if you need to tune
 
 let rowCount = 0;
 const rowsHtml = allWeeks.map((w, idx) => {
