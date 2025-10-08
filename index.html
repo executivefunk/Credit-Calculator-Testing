@@ -1174,7 +1174,9 @@ if (totalWeeksD > weeksRemaining) {
 }
 
  // Build two chunks: rows 1–30 and 31+ (but only split on mobile)
-const isNarrow = (printWin.innerWidth || 0) <= 820; // iPhone/small tablet
+const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
+const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
+const shouldSplit = isIOS || isSmallViewport;  // <— use this below
 const splitAfter = 30;
 
 let rowCount = 0;
@@ -1209,7 +1211,7 @@ allWeeks.forEach((w, idx) => {
   `;
 
   rowCount++;
-  if (isNarrow && rowCount > splitAfter) {
+  if (shouldSplit && rowCount > splitAfter) {
     part2 += oneRow;       // rows 31+ on mobile go to table 2
   } else {
     part1 += oneRow;       // rows 1–30 (or all rows on desktop)
@@ -1240,9 +1242,9 @@ const tableStart = `
 const tableEnd = `</table>`;
 
 // Final HTML: two tables on mobile, one table on desktop
-const tablesHtml = isNarrow
+const tablesHtml = shouldSplit
   ? `${tableStart}<tbody>${part1}</tbody>${tableEnd}
-     <div class="page-break"></div>
+     <div class="hard-break"></div>
      ${tableStart}<tbody>${part2}</tbody>${tableEnd}`
   : `${tableStart}<tbody>${part1}${part2}</tbody>${tableEnd}`;
 
@@ -1381,6 +1383,15 @@ const html = `
   .page-break {
     break-before: page !important;
     page-break-before: always !important;
+  }
+
+   /* Strong page break between the two tables (iOS-friendly) */
+  .hard-break {
+    display: block !important;
+    height: 0 !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    -webkit-column-break-before: always !important;
   }
 
   /* Hide on-paper UI elements */
