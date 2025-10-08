@@ -1520,18 +1520,23 @@ table:last-of-type { margin-bottom: 0 !important; }
 
   <div class="topbar">
   <div class="summarywrap">
-    <div class="summarybar">
-      <span class="badge badge-lg">Target: <strong id="tgt">${C}</strong></span>
-      <span class="badge badge-lg">Assigned: <strong id="asgn">0</strong></span>
-      <span class="badge badge-lg">Remaining: <strong id="rem">0</strong></span>
-
-      <span class="badge">0s: <strong id="c0">0</strong></span>
-      <span class="badge">1s: <strong id="c1">0</strong></span>
-      <span class="badge">2s: <strong id="c2">0</strong></span>
-      <span class="badge">3s: <strong id="c3">0</strong></span>
-      ${maxPerWeek === 4 ? '<span class="badge">4s: <strong id="c4">0</strong></span>' : ''}
-    </div>
+  <div class="summarybar">
+    <span class="badge badge-lg">Target: <strong id="tgt">${C}</strong></span>
+    <span class="badge badge-lg">Assigned: <strong id="asgn">0</strong></span>
   </div>
+
+  <div class="summarybar" style="margin-top:6px;">
+    <span class="badge badge-lg">Remaining: <strong id="rem">0</strong></span>
+  </div>
+
+  <div class="summarybar" style="margin-top:6px;">
+    <span class="badge">0s: <strong id="c0">0</strong></span>
+    <span class="badge">1s: <strong id="c1">0</strong></span>
+    <span class="badge">2s: <strong id="c2">0</strong></span>
+    <span class="badge">3s: <strong id="c3">0</strong></span>
+    ${maxPerWeek === 4 ? '<span class="badge">4s: <strong id="c4">0</strong></span>' : ''}
+  </div>
+</div>
 
   <div class="tools">
     <button id="btnSpread1">Spread 1-credit weeks evenly</button>
