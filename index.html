@@ -1175,7 +1175,7 @@ if (totalWeeksD > weeksRemaining) {
 
  // Build rows *with* soft page breaks for narrow screens (iOS/iPhone)
 const isNarrow = (printWin.innerWidth || 0) <= 820;   // simple phone/tablet heuristic
-const chunk = 20;                                     // try 18–22 if you need to tune
+const chunk = 21;                                     // try 18–22 if you need to tune
 
 let rowCount = 0;
 const rowsHtml = allWeeks.map((w, idx) => {
@@ -1310,36 +1310,48 @@ const html = `
   }
   .print-tips li { margin: 2px 0; }
 
-  /* --- Print overrides --- */
+ /* --- Print overrides --- */
 @media print {
   @page {
     size: letter portrait;
     margin: 0.5in;
-    
   }
-/* repeat table header/footer on every page (WebKit/iOS) */
-thead { display: table-header-group !important; }
-tfoot { display: table-footer-group !important; }
 
-/* stronger “don’t split” rules for iOS */
-tr, td, th {
-  page-break-inside: avoid !important;
-  break-inside: avoid !important;
-  -webkit-region-break-inside: avoid !important;
-  -webkit-column-break-inside: avoid !important;
-}
+  /* iOS/WebKit-friendly table behavior */
+  thead { display: table-header-group !important; }
+  tfoot { display: table-footer-group !important; }
 
-/* keep title with the table start */
-h2 { page-break-after: avoid; break-after: avoid; }
+  /* Stronger "don't split" rules for iOS */
+  tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-region-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+  }
 
-/* small boost helps WebKit pagination */
-table { line-height: 1.15; }
+  /* Keep title with the table start */
+  h2 {
+    page-break-after: avoid;
+    break-after: avoid;
+    margin-bottom: 6px; /* tighter to table */
+  }
+  /* Optional: move the parenthetical to a note under H2 */
+  .subtitle-note {
+    margin: 0 0 6px 0;
+    font-size: 0.9em;
+    color: #555;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
 
-/* utility row for manual page breaks on narrow screens */
-.page-break {
-  break-before: page !important;
-  page-break-before: always !important;
-}
+  /* Small boost helps WebKit pagination */
+  table { line-height: 1.15; }
+
+  /* Manual soft page-break utility (used by inserted <tr class="page-break">) */
+  .page-break {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
 
   /* Hide on-paper UI elements */
   #printBtn { display: none; }
@@ -1347,10 +1359,9 @@ table { line-height: 1.15; }
   .print-tips { display: none !important; }
   th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
-  /* ✅ Summary bar: show only once, at top of page 1 */
-  body { padding-top: 0 !important; }
-  .topbar {
-    position: static !important;       /* normal flow, not fixed */
+  /* ✅ Summary bar: show once at top of page 1 (no repeat) */
+  .topbar{
+    position: static !important;
     top: auto !important;
     left: auto !important;
     right: auto !important;
@@ -1363,24 +1374,25 @@ table { line-height: 1.15; }
     break-before: avoid;
     break-inside: avoid;
     break-after: avoid;
+    margin-bottom: 8px;
   }
 
-  /* Column widths to prevent wrapping and keep layout consistent */
+  /* Column widths (gives Date a bit more room on phones) */
   col.col-week     { width: 5%; }
-  col.col-date     { width: 20%; }
+  col.col-date     { width: 22%; }  /* was 20% */
   col.col-credits  { width: 5%; }
-  col.col-progress { width: 70%; }
+  col.col-progress { width: 68%; }  /* was 70% */
 
-  /* Comfortable row spacing + prevent splitting rows */
+  /* Comfortable rows + prevent splitting */
   th, td { padding: 8px 6px; }
   tr { page-break-inside: avoid; }
 
-  /* Date behavior: main line + note line under it */
+  /* Date behavior: main line + note on its own wrapped line */
   td.col-date { overflow: visible !important; text-overflow: clip !important; }
   .col-date .date-core { white-space: nowrap !important; display: block !important; }
   .col-date .date-note { white-space: normal !important; display: block !important; }
 
-  /* Progress grid stays aligned */
+  /* Progress layout + sizing for print */
   .col-progress .progress-grid {
     grid-template-columns: repeat(4, 1fr);
     column-gap: 6px;
@@ -1388,9 +1400,9 @@ table { line-height: 1.15; }
   }
   .chk { font-size: 0.82rem; gap: 2px; }
   .chk input { width: 12px; height: 12px; }
-  .credit-line { width: 0.9in !important; }
+  .credit-line { width: 0.86in !important; } /* was 0.9in; trims crowding on iPhone */
 
-  /* Hide any extra on-screen notes */
+  /* Hide screen-only notes */
   .notes { display: none !important; }
 }
 </style>
