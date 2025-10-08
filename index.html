@@ -1173,13 +1173,17 @@ if (totalWeeksD > weeksRemaining) {
   return `<span class="date-core">${str}</span>`;
 }
 
- const rowsHtml = allWeeks.map(w => {
+ // Build rows *with* soft page breaks for narrow screens (iOS/iPhone)
+const isNarrow = (printWin.innerWidth || 0) <= 820;   // simple phone/tablet heuristic
+const chunk = 20;                                     // try 18–22 if you need to tune
+
+let rowCount = 0;
+const rowsHtml = allWeeks.map((w, idx) => {
   const rowClass = w.skip ? ' class="skip-row"' : '';
   const controls = w.skip
     ? '<em>Skip</em>'
     : '<button class="minus">–</button><button class="plus">+</button>';
 
-  // 4 items: [checkbox] [number] [one-inch line], laid out in a mini 4-column grid
   const boxes = [1, 2, 3, 4].map(i => {
     const id = `wk${w.week}-c${i}`;
     return `
@@ -1190,6 +1194,27 @@ if (totalWeeksD > weeksRemaining) {
       </label>
     `;
   }).join('');
+
+  // normal row
+  let html = `
+    <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
+      <td class="col-week">${w.week}</td>
+      <td class="col-date">${formatDateForCell(dateRanges[w.week] || '')}</td>
+      <td class="col-credits"><strong class="val">${w.credits}</strong></td>
+      <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
+      <td class="col-adjust">${controls}</td>
+    </tr>
+  `;
+
+  rowCount++;
+
+  // soft page break every N rows on narrow screens (don’t put after the last data row)
+  if (isNarrow && rowCount % chunk === 0 && idx < allWeeks.length - 1) {
+    html += `<tr class="page-break"><td colspan="5"></td></tr>`;
+  }
+
+  return html;
+}).join('');
 
   return `
   <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
@@ -1301,7 +1326,31 @@ const html = `
   @page {
     size: letter portrait;
     margin: 0.5in;
+    
   }
+/* repeat table header/footer on every page (WebKit/iOS) */
+thead { display: table-header-group !important; }
+tfoot { display: table-footer-group !important; }
+
+/* stronger “don’t split” rules for iOS */
+tr, td, th {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  -webkit-region-break-inside: avoid !important;
+  -webkit-column-break-inside: avoid !important;
+}
+
+/* keep title with the table start */
+h2 { page-break-after: avoid; break-after: avoid; }
+
+/* small boost helps WebKit pagination */
+table { line-height: 1.15; }
+
+/* utility row for manual page breaks on narrow screens */
+.page-break {
+  break-before: page !important;
+  page-break-before: always !important;
+}
 
   /* Hide on-paper UI elements */
   #printBtn { display: none; }
