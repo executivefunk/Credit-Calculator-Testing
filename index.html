@@ -1309,6 +1309,23 @@ const html = `
   .print-tips { display: none !important; }
   th.col-adjust, td.col-adjust, .col-adjust { display: none !important; }
 
+    /* Reserve space so the fixed bar doesn’t overlap the table */
+  body { padding-top: 1.1in; } /* adjust to taste */
+
+  .topbar{
+    position: fixed !important;
+    top: 0.5in;              /* align with your @page margins */
+    left: 0.5in;
+    right: 0.5in;
+    z-index: 9999;
+    page-break-after: avoid; /* keep table from jumping above it */
+    background: #fff;        /* ensures it prints cleanly over white */
+  }
+
+  /* Hide screen-only tools in print */
+  .topbar .tools,
+  .print-tips { display: none !important; }
+
   /* Column widths to prevent wrapping and keep 4 items in Progress */
   col.col-week     { width: 5%; }
   col.col-date     { width: 20%; }
