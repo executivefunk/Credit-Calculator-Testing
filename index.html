@@ -1173,12 +1173,15 @@ if (totalWeeksD > weeksRemaining) {
   return `<span class="date-core">${str}</span>`;
 }
 
- // Build rows *with* soft page breaks for narrow screens (iOS/iPhone)
-const isNarrow = (printWin.innerWidth || 0) <= 820;   // simple phone/tablet heuristic
-const chunk = 15;                                     // try 18–22 if you need to tune
+ // Build two chunks: rows 1–30 and 31+ (but only split on mobile)
+const isNarrow = (printWin.innerWidth || 0) <= 820; // iPhone/small tablet
+const splitAfter = 30;
 
 let rowCount = 0;
-const rowsHtml = allWeeks.map((w, idx) => {
+let part1 = '';
+let part2 = '';
+
+allWeeks.forEach((w, idx) => {
   const rowClass = w.skip ? ' class="skip-row"' : '';
   const controls = w.skip
     ? '<em>Skip</em>'
@@ -1195,26 +1198,53 @@ const rowsHtml = allWeeks.map((w, idx) => {
     `;
   }).join('');
 
-  // normal row
-  let html = `
+  const oneRow = `
     <tr${rowClass} data-week="${w.week}" data-skip="${w.skip ? '1':'0'}">
       <td class="col-week">${w.week}</td>
       <td class="col-date">${formatDateForCell(dateRanges[w.week] || '')}</td>
       <td class="col-credits"><strong class="val">${w.credits}</strong></td>
       <td class="col-progress"><div class="progress-grid">${boxes}</div></td>
-      <td class="col-adjust">${controls}</td>
+      <td class="controls col-adjust">${controls}</td>
     </tr>
   `;
 
   rowCount++;
+  if (isNarrow && rowCount > splitAfter) {
+    part2 += oneRow;       // rows 31+ on mobile go to table 2
+  } else {
+    part1 += oneRow;       // rows 1–30 (or all rows on desktop)
+  }
+});
 
-  /* 🔒 Force a page break after row 30 — only on mobile (narrow screens) */
-if (isNarrow && rowCount === 30 && idx < allWeeks.length - 1) {
-  html += `<tr class="page-break"><td colspan="5"></td></tr>`;
-}
+// Table shells reused for 1 or 2 tables
+const tableStart = `
+  <table class="planner">
+    <colgroup>
+      <col class="col-week">
+      <col class="col-date">
+      <col class="col-credits">
+      <col class="col-progress">
+      <col class="col-adjust">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="col-week">Week</th>
+        <th class="col-date">Date Range</th>
+        <th class="col-credits">Credits</th>
+        <th class="col-progress">Progress</th>
+        <th class="col-adjust">Adjust</th>
+      </tr>
+    </thead>
+`;
 
-  return html;
-}).join('');
+const tableEnd = `</table>`;
+
+// Final HTML: two tables on mobile, one table on desktop
+const tablesHtml = isNarrow
+  ? `${tableStart}<tbody>${part1}</tbody>${tableEnd}
+     <div class="page-break"></div>
+     ${tableStart}<tbody>${part2}</tbody>${tableEnd}`
+  : `${tableStart}<tbody>${part1}${part2}</tbody>${tableEnd}`;
 
 // Write the static HTML (NO <script> tag here)
 const html = `
@@ -1441,27 +1471,7 @@ const html = `
     <span style="font-weight: normal; font-size: 0.6em;"> - (Credit completion is allowed during self-selected “0” credit weeks.)</span>
   </h2>
 
-  <table id="tbl">
-    <colgroup>
-      <col class="col-week">
-      <col class="col-date">
-      <col class="col-credits">
-      <col class="col-progress">
-      <col class="col-adjust">
-    </colgroup>
-    <thead>
-  <tr>
-    <th>Week</th>
-    <th>Date Range</th>
-    <th>Credits</th>
-    <th>Progress</th>
-    <th class="col-adjust">Adjust</th>
-  </tr>
-</thead>
-    <tbody>
-      ${rowsHtml}
-    </tbody>
-  </table>
+  ${tablesHtml}
 
  <p class="notes" style="margin-top:10px; font-size:0.95em; color:#555;">
   Notes: Skip weeks are locked at 0. Per-week limit is 3. The table won’t let you exceed your total target credits (${C}).
@@ -1476,72 +1486,80 @@ const html = `
     (function() {
       const maxPerWeek = ${maxPerWeek};
       const target = ${C};
-      const table = document.getElementById('tbl');
+         const tables = Array.from(document.querySelectorAll('table.planner'));
 
-      function currentValues() {
-        const vals = [];
-        table.querySelectorAll('tbody tr').forEach(tr => {
-          const skip = tr.getAttribute('data-skip') === '1';
-          const v = parseInt(tr.querySelector('.val').textContent) || 0;
-          vals.push({ tr, skip, v });
-        });
-        return vals;
-      }
+   function eachRow(cb) {
+     tables.forEach(t => t.querySelectorAll('tbody tr').forEach(cb));
+   }
 
-      function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+   function currentValues() {
+     const vals = [];
+     eachRow(tr => {
+       const skip = tr.getAttribute('data-skip') === '1';
+       const v = parseInt(tr.querySelector('.val').textContent) || 0;
+       vals.push({ tr, skip, v });
+     });
+     return vals;
+   }
 
-      function refreshSummary() {
-        const items = currentValues();
-        const nums = items.map(x => x.v);
-        const assigned = sum(nums);
-        const rem = Math.max(0, target - assigned);
-        const cnt = {0:0,1:0,2:0,3:0,4:0};
-        nums.forEach(n => { if (cnt[n] !== undefined) cnt[n]++; });
+   function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
 
-        document.getElementById('asgn').textContent = assigned;
-        document.getElementById('rem').textContent = rem;
-        document.getElementById('c0').textContent = cnt[0] || 0;
-        document.getElementById('c1').textContent = cnt[1] || 0;
-        document.getElementById('c2').textContent = cnt[2] || 0;
-        document.getElementById('c3').textContent = cnt[3] || 0;
-        const c4El = document.getElementById('c4');
-        if (c4El) c4El.textContent = cnt[4] || 0;
-      }
+   function refreshSummary() {
+     const items = currentValues();
+     const nums = items.map(x => x.v);
+     const assigned = sum(nums);
+     const rem = Math.max(0, target - assigned);
+     const cnt = {0:0,1:0,2:0,3:0,4:0};
+     nums.forEach(n => { if (cnt[n] !== undefined) cnt[n]++; });
 
-      function trySet(tr, newVal) {
-        const skip = tr.getAttribute('data-skip') === '1';
-        if (skip) return;
-        newVal = Math.max(0, Math.min(maxPerWeek, newVal));
+     document.getElementById('asgn').textContent = assigned;
+     document.getElementById('rem').textContent = rem;
+     document.getElementById('c0').textContent = cnt[0] || 0;
+     document.getElementById('c1').textContent = cnt[1] || 0;
+     document.getElementById('c2').textContent = cnt[2] || 0;
+     document.getElementById('c3').textContent = cnt[3] || 0;
+     const c4El = document.getElementById('c4');
+     if (c4El) c4El.textContent = cnt[4] || 0;
+   }
 
-        const items = currentValues();
-        const old = parseInt(tr.querySelector('.val').textContent) || 0;
-        const assignedNow = items.reduce((s,i)=>s+i.v,0);
-        const assignedMinusOld = assignedNow - old;
-        const room = Math.max(0, target - assignedMinusOld);
-        if (newVal > room) newVal = room;
+   function trySet(tr, newVal) {
+     const skip = tr.getAttribute('data-skip') === '1';
+     if (skip) return;
+     newVal = Math.max(0, Math.min(maxPerWeek, newVal));
 
-        tr.querySelector('.val').textContent = newVal;
-        refreshSummary();
-      }
+     const items = currentValues();
+     const old = parseInt(tr.querySelector('.val').textContent) || 0;
+     const assignedNow = items.reduce((s,i)=>s+i.v,0);
+     const assignedMinusOld = assignedNow - old;
+     const room = Math.max(0, target - assignedMinusOld);
+     if (newVal > room) newVal = room;
 
-      table.addEventListener('click', (e) => {
-        const btn = e.target.closest('button');
-        if (!btn) return;
-        const tr = e.target.closest('tr');
-        const valEl = tr.querySelector('.val');
-        let v = parseInt(valEl.textContent) || 0;
+     tr.querySelector('.val').textContent = newVal;
+     refreshSummary();
+   }
 
-        if (btn.classList.contains('plus')) trySet(tr, v + 1);
-        if (btn.classList.contains('minus')) trySet(tr, v - 1);
-      });
+   // click +/- on any table
+   tables.forEach(table => {
+     table.addEventListener('click', (e) => {
+       const btn = e.target.closest('button');
+       if (!btn) return;
+       const tr = e.target.closest('tr');
+       const valEl = tr.querySelector('.val');
+       let v = parseInt(valEl.textContent) || 0;
 
-      document.getElementById('btnClear').addEventListener('click', () => {
-        table.querySelectorAll('tbody tr').forEach(tr => {
-          if (tr.getAttribute('data-skip') === '1') return;
-          tr.querySelector('.val').textContent = '0';
-        });
-        refreshSummary();
-      });
+       if (btn.classList.contains('plus')) trySet(tr, v + 1);
+       if (btn.classList.contains('minus')) trySet(tr, v - 1);
+     });
+   });
+
+   // Clear across all tables
+   document.getElementById('btnClear').addEventListener('click', () => {
+     eachRow(tr => {
+       if (tr.getAttribute('data-skip') === '1') return;
+       tr.querySelector('.val').textContent = '0';
+     });
+     refreshSummary();
+   });
 
       document.getElementById('btnFill2').addEventListener('click', () => {
         const rows = currentValues().filter(i => !i.skip);
