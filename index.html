@@ -1177,7 +1177,7 @@ if (totalWeeksD > weeksRemaining) {
 const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
 const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
 const shouldSplit = isIOS || isSmallViewport;  // <— use this below
-const splitAfter = 15;
+const splitAfter = 18;
 
 let rowCount = 0;
 let part1 = '';
