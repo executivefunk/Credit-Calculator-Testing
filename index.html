@@ -1450,6 +1450,24 @@ const html = `
 .summarybar .badge { border-color: #bdbdbd; }
   .notes { display: none !important; }
 
+  /* Merge the two tables visually on-screen */
+@media screen {
+  /* hide the artificial page break spacer */
+  .page-cut { display: none !important; }
+
+  /* let chunks behave normally on screen */
+  .print-chunk { break-inside: auto; page-break-inside: auto; }
+
+  /* make the 2nd table look like a continuation of the first */
+  .print-chunk + .print-chunk table.planner {
+    margin-top: -1px;            /* remove any gap from double borders */
+    border-top: 0;               /* no new top border */
+  }
+  .print-chunk + .print-chunk table.planner thead {
+    display: none;               /* hide the duplicate header on screen */
+  }
+}
+
  /* --- Print overrides --- */
 @media print {
   @page {
