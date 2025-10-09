@@ -1469,16 +1469,27 @@ const html = `
 }
  /* --- Print overrides --- */
 @media print {
-  /* 1) Remove the default body padding on the print window */
+  /* Remove the default body padding so page 1 has more room */
   body { padding: 0 !important; }
 
-  /* 2) Hide the summary topbar on paper to free first-page space */
-  .topbar { display: none !important; }
-
-  /* 3) Tighten the title so the table can start immediately under it */
+  /* Keep the title, just tighten spacing so rows fit under it */
   h2 { margin: 0 0 6px !important; }
 
-  /* 4) (keep) ensure the first table is allowed on page 1 */
+  /* Keep the summary bar, but make it compact */
+  .topbar {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: 4px 8px !important;
+    margin: 0 0 6px !important;
+    grid-template-columns: 1fr !important;
+    row-gap: 4px !important;
+  }
+  .topbar .tools, .print-tips { display: none !important; }
+  .summarywrap { font-size: 0.85em; padding: 2px 4px !important; border: 0 !important; }
+
+  /* Ensure the first table is allowed to start on page 1 */
   .print-chunk:first-of-type,
   .print-chunk:first-of-type table.planner,
   .print-chunk:first-of-type .planner.first-chunk {
