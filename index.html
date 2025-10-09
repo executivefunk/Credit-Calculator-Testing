@@ -1451,20 +1451,28 @@ const html = `
   .notes { display: none !important; }
 
   /* Merge the two tables visually on-screen */
+/* —— Screen-only: merge the two tables and hide headers —— */
 @media screen {
-  /* hide the artificial page break spacer */
+  /* hide the artificial page-break spacer on screen */
   .page-cut { display: none !important; }
 
-  /* let chunks behave normally on screen */
+  /* let chunks render like normal blocks */
   .print-chunk { break-inside: auto; page-break-inside: auto; }
 
-  /* make the 2nd table look like a continuation of the first */
-  .print-chunk + .print-chunk table.planner {
-    margin-top: -1px;            /* remove any gap from double borders */
-    border-top: 0;               /* no new top border */
+  /* make both tables look like a single continuous table */
+  table.planner { 
+    border-collapse: collapse; 
+    width: 100%;
   }
-  .print-chunk + .print-chunk table.planner thead {
-    display: none;               /* hide the duplicate header on screen */
+  /* remove the visual “seam” between the two tables */
+  .print-chunk + .print-chunk table.planner {
+    margin-top: -1px;         /* eat the double border */
+    border-top: 0;            /* no new top border */
+  }
+
+  /* ✨ hide the header row (Week / Date Range / Credits / Progress / Adjust) on screen */
+  table.planner thead { 
+    display: none !important; 
   }
 }
 
