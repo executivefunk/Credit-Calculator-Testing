@@ -1264,10 +1264,16 @@ const tableEnd = `</table>`;
 
 // Final HTML: two tables when shouldSplit=true; no spacer div needed
 const tablesHtml = shouldSplit
-  ? `${tableStart1}<tbody>${part1}</tbody>${tableEnd}
-     <div class="hard-break"></div>
-     ${tableStart2}<tbody>${part2}</tbody>${tableEnd}`
-  : `${tableStart2}<tbody>${part1}${part2}</tbody>${tableEnd}`;
+  ? `<div class="print-chunk">
+       ${tableStart1}<tbody>${part1}</tbody>${tableEnd}
+     </div>
+     <div class="page-cut"></div>
+     <div class="print-chunk">
+       ${tableStart2}<tbody>${part2}</tbody>${tableEnd}
+     </div>`
+  : `<div class="print-chunk">
+       ${tableStart2}<tbody>${part1}${part2}</tbody>${tableEnd}
+     </div>`;
 
 // Write the static HTML (NO <script> tag here)
 const html = `
@@ -1440,6 +1446,10 @@ const html = `
   margin-left: 10px; /* optional slight spacing for balance */
 }
 
+.summarywrap { border-color: #d0d0d0; background: #fff; }
+.summarybar .badge { border-color: #bdbdbd; }
+  .notes { display: none !important; }
+
  /* --- Print overrides --- */
 @media print {
   @page {
@@ -1500,20 +1510,6 @@ const html = `
     page-break-before: always !important;
     -webkit-column-break-before: always !important;
   }
-
-  /* Force a real page break after the first split table only when present */
-table.planner.first-chunk {
-  break-after: page !important;
-  page-break-after: always !important;
-  -webkit-column-break-after: always !important; /* WebKit nudge */
-}
-
-/* Fallback: ensure the second table starts on a new page if it immediately follows the first */
-table.planner.first-chunk + table.planner {
-  break-before: page !important;
-  page-break-before: always !important;
-  -webkit-column-break-before: always !important;
-}
 
   /* Hide on-paper UI elements */
   #printBtn { display: none; }
@@ -1592,9 +1588,68 @@ td, th { padding-top: 5px !important; padding-bottom: 5px !important; }  /* was 
 .credit-line { width: 0.78in !important; } /* was 0.80in */
 body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 table:last-of-type { margin-bottom: 0 !important; }
+
+  /* keep each table chunk intact */
+  .print-chunk {
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* force the next chunk onto a new page */
+  .page-cut {
+    display: block !important;
+    height: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    -webkit-column-break-before: always !important;
+  }
+
+  /* iOS nudge: giving it 1px helps WebKit honor the break */
+  @supports (-webkit-touch-callout: none) {
+    .page-cut { height: 1px !important; }
+  }
+
+/* keep each table chunk intact */
+.print-chunk {
+  display: block !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
-.summarywrap { border-color: #d0d0d0; background: #fff; }
-.summarybar .badge { border-color: #bdbdbd; }
+
+/* force the next chunk onto a new page */
+.page-cut {
+  display: block !important;
+  height: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  break-before: page !important;
+  page-break-before: always !important;
+  -webkit-column-break-before: always !important;
+}
+
+/* iOS nudge */
+@supports (-webkit-touch-callout: none) {
+  .page-cut { height: 1px !important; }
+}
+
+/* NEW: works with your wrapper divs */
+.print-chunk + .print-chunk {
+  break-before: page !important;
+  page-break-before: always !important;
+  -webkit-column-break-before: always !important;
+}
+
+  /* keep table headers with their table */
+  table.planner thead { display: table-header-group !important; }
+
+ /* keep these at the end so they win in print */
+  .credit-line { width: 0.78in !important; } /* was 0.80in */
+  body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+  table:last-of-type { margin-bottom: 0 !important; }
+} /* <- only one closing brace for @media print */
 </style>
 </head>
 <body>
