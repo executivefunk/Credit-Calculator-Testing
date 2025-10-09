@@ -1173,17 +1173,17 @@ if (totalWeeksD > weeksRemaining) {
   return `<span class="date-core">${str}</span>`;
 }
 
- // Build two chunks: rows 1–30 and 31+ (but only split on mobile)
+// Paginate rows for mobile/iOS print: 21 rows on page 1, 26 on page 2, rest on page 3+
 const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
 const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
-const shouldSplit = isIOS || isSmallViewport;  // <— use this below
-const splitAfter = 18;
+const shouldSplit = isIOS || isSmallViewport;
 
-let rowCount = 0;
-let part1 = '';
-let part2 = '';
+// capacities you observed; tweak if you change row padding/sizing
+const maxRowsFirst = 21;
+const maxRowsNext = 26;
 
-allWeeks.forEach((w, idx) => {
+let rows = [];
+allWeeks.forEach((w) => {
   const rowClass = w.skip ? ' class="skip-row"' : '';
   const controls = w.skip
     ? '<em>Skip</em>'
@@ -1209,38 +1209,11 @@ allWeeks.forEach((w, idx) => {
       <td class="controls col-adjust">${controls}</td>
     </tr>
   `;
-
-  rowCount++;
-  if (shouldSplit && rowCount > splitAfter) {
-    part2 += oneRow;       // rows 31+ on mobile go to table 2
-  } else {
-    part1 += oneRow;       // rows 1–30 (or all rows on desktop)
-  }
+  rows.push(oneRow);
 });
 
-// Table shells reused for 1 or 2 tables
-// Table shells: first one is specially tagged for print break
-const tableStart1 = `
-  <table class="planner first-chunk">
-    <colgroup>
-      <col class="col-week">
-      <col class="col-date">
-      <col class="col-credits">
-      <col class="col-progress">
-      <col class="col-adjust">
-    </colgroup>
-    <thead>
-      <tr>
-        <th class="col-week">Week</th>
-        <th class="col-date">Date Range</th>
-        <th class="col-credits">Credits</th>
-        <th class="col-progress">Progress</th>
-        <th class="col-adjust">Adjust</th>
-      </tr>
-    </thead>
-`;
-
-const tableStart2 = `
+// table shell (same header every chunk; header hidden on-screen for chunks > 1)
+const tableStart = `
   <table class="planner">
     <colgroup>
       <col class="col-week">
@@ -1262,18 +1235,34 @@ const tableStart2 = `
 
 const tableEnd = `</table>`;
 
-// Final HTML: two tables when shouldSplit=true; no spacer div needed
-const tablesHtml = shouldSplit
-  ? `<div class="print-chunk">
-       ${tableStart1}<tbody>${part1}</tbody>${tableEnd}
-     </div>
-     <div class="page-cut"></div>
-     <div class="print-chunk">
-       ${tableStart2}<tbody>${part2}</tbody>${tableEnd}
-     </div>`
-  : `<div class="print-chunk">
-       ${tableStart2}<tbody>${part1}${part2}</tbody>${tableEnd}
-     </div>`;
+// Make chunks
+let chunks = [];
+if (shouldSplit) {
+  let i = 0;
+  // first page
+  chunks.push(rows.slice(i, i + maxRowsFirst)); i += maxRowsFirst;
+  // subsequent pages at maxRowsNext
+  while (i < rows.length) {
+    chunks.push(rows.slice(i, i + maxRowsNext));
+    i += maxRowsNext;
+  }
+} else {
+  // desktop / large view: one chunk
+  chunks = [rows];
+}
+
+// Build HTML with page cuts between chunks (print only)
+let tablesHtml = '';
+chunks.forEach((chunkRows, idx) => {
+  if (idx > 0) tablesHtml += `<div class="page-cut"></div>`;
+  tablesHtml += `
+    <div class="print-chunk${idx === 0 ? ' first' : ''}">
+      ${tableStart}
+      <tbody>${chunkRows.join('')}</tbody>
+      ${tableEnd}
+    </div>
+  `;
+});
 
 // Write the static HTML (NO <script> tag here)
 const html = `
