@@ -1507,6 +1507,13 @@ table.planner.first-chunk {
   -webkit-column-break-after: always !important; /* WebKit nudge */
 }
 
+/* Fallback: ensure the second table starts on a new page if it immediately follows the first */
+table.planner.first-chunk + table.planner {
+  break-before: page !important;
+  page-break-before: always !important;
+  -webkit-column-break-before: always !important;
+}
+
   /* Hide on-paper UI elements */
   #printBtn { display: none; }
   .topbar .tools { display: none !important; }
