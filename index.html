@@ -1563,12 +1563,25 @@ const html = `
     break-inside: avoid !important;
   }
 
+  /* Let the first chunk split so it can begin on page 1 */
+.print-chunk.first {
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}
+
   /* Force a page break between chunks (even without .page-cut) */
   .print-chunk + .print-chunk {
     break-before: page !important;
     page-break-before: always !important;
     -webkit-column-break-before: always !important;
   }
+
+  /* Allow the second chunk to start on page 1 (don't push it to page 2) */
+.print-chunk:first-of-type + .print-chunk {
+  break-before: auto !important;
+  page-break-before: auto !important;
+  -webkit-column-break-before: auto !important;
+}
 
   /* --- Page break between chunks: minimal gap for full-page use --- */
 .page-cut {
