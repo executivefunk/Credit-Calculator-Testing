@@ -1524,7 +1524,7 @@ const html = `
     row-gap: 4px;
   }
   .badge { padding: 2px 4px; font-size: 0.78em; }
-  th, td { padding: 6px 4px; }
+  th, td { padding: 5px 4px; }           /* tighter */
 
   /* Column widths for print */
   col.col-week     { width: 5%; }
@@ -1548,8 +1548,8 @@ const html = `
   .credit-line { width: 0.78in !important; }
 
   /* Tighten spacing so pages fit neatly */
-  table.planner { margin-top: 6px !important; margin-bottom: 6px !important; }
-  thead th { padding-top: 4px !important; padding-bottom: 4px !important; }
+  table.planner { margin-top: 4px !important; margin-bottom: 4px !important; }
+  thead th { padding-top: 3px !important; padding-bottom: 3px !important; }
   td, th  { padding-top: 5px !important; padding-bottom: 5px !important; }
   body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
   table:last-of-type { margin-bottom: 0 !important; }
@@ -1570,20 +1570,21 @@ const html = `
     -webkit-column-break-before: always !important;
   }
 
-  /* FORCE CLEAN BREAKS BETWEEN CHUNKS (when you include .page-cut in HTML) */
-  .page-cut {
-    display: block !important;
-    height: 2in !important;                 /* key: real height prevents header+rows leaking up */
-    margin: 0 !important;
-    border: 0 !important;
-    break-before: page !important;
-    page-break-before: always !important;
-    -webkit-column-break-before: always !important;
-  }
-  /* iOS/WebKit nudge */
-  @supports (-webkit-touch-callout: none) {
-    .page-cut { height: 2.05in !important; }
-  }
+  /* --- Page break between chunks: minimal gap for full-page use --- */
+.page-cut {
+  display: block !important;
+  height: 0.25in !important;       /* small nudge triggers real page break */
+  margin: 0 !important;
+  border: 0 !important;
+  break-before: page !important;
+  page-break-before: always !important;
+  -webkit-column-break-before: always !important;
+}
+
+/* iOS/WebKit nudge */
+@supports (-webkit-touch-callout: none) {
+  .page-cut { height: 0.3in !important; }
+}
 
   /* Keep header+body together so WebKit doesn't orphan rows */
   table.planner thead,
