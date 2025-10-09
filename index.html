@@ -1462,6 +1462,15 @@ const html = `
     page-break-before: always !important;
   }
 
+  /* --- Stronger spacer between tables for reliable mobile page break --- */
+.page-break-spacer {
+  display: block;
+  height: 2in;  /* adjust between 1.75–2.25in as needed */
+  break-before: page !important;
+  page-break-before: always !important;
+  -webkit-column-break-before: always !important;
+}
+
    /* Strong page break between the two tables (iOS-friendly) */
   .hard-break {
     display: block !important;
