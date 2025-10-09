@@ -1452,30 +1452,31 @@ const html = `
 
   /* Merge the two tables visually on-screen */
 /* —— Screen-only: merge the two tables and hide headers —— */
+/* —— Screen-only: merge tables, keep first header, hide the rest —— */
 @media screen {
   /* hide the artificial page-break spacer on screen */
   .page-cut { display: none !important; }
 
-  /* let chunks render like normal blocks */
+  /* make both tables look like a single continuous table */
+  table.planner { border-collapse: collapse; width: 100%; }
   .print-chunk { break-inside: auto; page-break-inside: auto; }
 
-  /* make both tables look like a single continuous table */
-  table.planner { 
-    border-collapse: collapse; 
-    width: 100%;
-  }
-  /* remove the visual “seam” between the two tables */
+  /* remove the visual seam between tables */
   .print-chunk + .print-chunk table.planner {
-    margin-top: -1px;         /* eat the double border */
-    border-top: 0;            /* no new top border */
+    margin-top: -1px;   /* eat the double border */
+    border-top: 0;
   }
 
-  /* ✨ hide the header row (Week / Date Range / Credits / Progress / Adjust) on screen */
-  table.planner thead { 
-    display: none !important; 
+  /* ✅ show header on the FIRST chunk */
+  .print-chunk:first-of-type table.planner thead {
+    display: table-header-group !important;
+  }
+
+  /* 🚫 hide headers on all subsequent chunks (2nd, 3rd, …) */
+  .print-chunk ~ .print-chunk table.planner thead {
+    display: none !important;
   }
 }
-
  /* --- Print overrides --- */
 @media print {
   @page {
