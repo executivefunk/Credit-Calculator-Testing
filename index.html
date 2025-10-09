@@ -1310,9 +1310,12 @@ const html = `
 }
   .topbar .nums { display: flex; gap: 12px; justify-content: center; }
   .topbar .tools {
-    display: flex; flex-direction: column; align-items: flex-start;
-    margin-left: auto; margin-right: 60px;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 40px;     /* pushes it slightly away from summary box */
+  margin-right: 160px;   /* adds a safe buffer from the Print button */
+}
   .badge { border: 1px solid #999; border-radius: 6px; padding: 4px 6px; font-size: 0.85em; }
 
   /* Progress: 4 items inside single Progress cell */
@@ -1366,14 +1369,15 @@ const html = `
 
   /* --- Print Tips bar (screen only) --- */
   .print-tips {
-    background: #fff3cd;           /* soft yellow */
-    border: 1px solid #ffe49a;
-    color: #6b5b00;
-    padding: 10px 14px;
-    border-radius: 8px;
-    margin: 8px 0 14px;
-    font-size: 0.95rem;
-  }
+  background: #fff3cd;
+  border: 1px solid #ffe49a;
+  color: #6b5b00;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 8px 0 14px 40px;  /* adds left margin to align under tools */
+  font-size: 0.95rem;
+  max-width: 320px;          /* keeps it narrow, away from print button */
+}
   .print-tips strong { font-weight: 700; }
   .print-tips ul {
     margin: 6px 0 0 1.1em;
