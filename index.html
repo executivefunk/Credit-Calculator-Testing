@@ -1219,7 +1219,28 @@ allWeeks.forEach((w, idx) => {
 });
 
 // Table shells reused for 1 or 2 tables
-const tableStart = `
+// Table shells: first one is specially tagged for print break
+const tableStart1 = `
+  <table class="planner first-chunk">
+    <colgroup>
+      <col class="col-week">
+      <col class="col-date">
+      <col class="col-credits">
+      <col class="col-progress">
+      <col class="col-adjust">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="col-week">Week</th>
+        <th class="col-date">Date Range</th>
+        <th class="col-credits">Credits</th>
+        <th class="col-progress">Progress</th>
+        <th class="col-adjust">Adjust</th>
+      </tr>
+    </thead>
+`;
+
+const tableStart2 = `
   <table class="planner">
     <colgroup>
       <col class="col-week">
@@ -1241,12 +1262,11 @@ const tableStart = `
 
 const tableEnd = `</table>`;
 
-// Final HTML: two tables on mobile, one table on desktop
+// Final HTML: two tables when shouldSplit=true; no spacer div needed
 const tablesHtml = shouldSplit
-  ? `${tableStart}<tbody>${part1}</tbody>${tableEnd}
-     <div class="hard-break"></div>
-     ${tableStart}<tbody>${part2}</tbody>${tableEnd}`
-  : `${tableStart}<tbody>${part1}${part2}</tbody>${tableEnd}`;
+  ? `${tableStart1}<tbody>${part1}</tbody>${tableEnd}
+     ${tableStart2}<tbody>${part2}</tbody>${tableEnd}`
+  : `${tableStart2}<tbody>${part1}${part2}</tbody>${tableEnd}`;
 
 // Write the static HTML (NO <script> tag here)
 const html = `
@@ -1479,6 +1499,13 @@ const html = `
     page-break-before: always !important;
     -webkit-column-break-before: always !important;
   }
+
+  /* Force a real page break after the first split table only when present */
+table.planner.first-chunk {
+  break-after: page !important;
+  page-break-after: always !important;
+  -webkit-column-break-after: always !important; /* WebKit nudge */
+}
 
   /* Hide on-paper UI elements */
   #printBtn { display: none; }
