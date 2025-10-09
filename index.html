@@ -1469,27 +1469,25 @@ const html = `
 }
  /* --- Print overrides --- */
 @media print {
-  @page { size: letter portrait; margin: 0.5in; }
+  /* 1) Remove the default body padding on the print window */
+  body { padding: 0 !important; }
 
-  /* Keep title/summary with the first table; don't force a break */
-  .topbar,
-  h2 {
-    page-break-before: avoid !important;
-    break-before: avoid !important;
-    page-break-after: avoid !important;
-    break-after: avoid !important;
-  }
+  /* 2) Hide the summary topbar on paper to free first-page space */
+  .topbar { display: none !important; }
 
-  /* Never push the first table/chunk to page 2 */
+  /* 3) Tighten the title so the table can start immediately under it */
+  h2 { margin: 0 0 6px !important; }
+
+  /* 4) (keep) ensure the first table is allowed on page 1 */
   .print-chunk:first-of-type,
   .print-chunk:first-of-type table.planner,
   .print-chunk:first-of-type .planner.first-chunk {
     break-before: auto !important;
     page-break-before: auto !important;
-    -webkit-column-break-before: auto !important;
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
+}
 
   /* General table behavior for print/iOS */
   table { line-height: 1.12; }
