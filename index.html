@@ -1606,6 +1606,28 @@ td, th { padding-top: 5px !important; padding-bottom: 5px !important; }  /* was 
 body { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 table:last-of-type { margin-bottom: 0 !important; }
 
+/* --- Never push the first table to page 2 --- */
+.topbar,
+h2 {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+/* Cancel any accidental page break before the FIRST chunk/table */
+.print-chunk:first-of-type,
+.print-chunk:first-of-type table.planner,
+.print-chunk:first-of-type .planner.first-chunk {
+  break-before: auto !important;
+  page-break-before: auto !important;
+  -webkit-column-break-before: auto !important;
+}
+
+/* Make sure the first chunk doesn’t introduce spacing that triggers a break */
+.print-chunk:first-of-type {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
   /* keep each table chunk intact */
   .print-chunk {
     display: block !important;
