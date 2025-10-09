@@ -1385,6 +1385,40 @@ const html = `
   }
   .print-tips li { margin: 2px 0; }
 
+  /* --- Align Print Tips box to the right of the three buttons --- */
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto auto; /* summary | tools | tips */
+  align-items: start;
+  column-gap: 32px; /* space between buttons and tips */
+  padding-right: 120px; /* keeps space for floating Print button */
+}
+
+/* keep summary box left */
+.summarywrap {
+  justify-self: start;
+}
+
+/* keep buttons centered vertically */
+.topbar .tools {
+  justify-self: start;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* move print tips beside buttons */
+.print-tips {
+  justify-self: start;  /* align left edge with button stack */
+  align-self: start;
+  max-width: 420px;
+  margin-top: 0;
+  margin-left: 10px; /* optional slight spacing for balance */
+}
+
  /* --- Print overrides --- */
 @media print {
   @page {
