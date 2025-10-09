@@ -1265,6 +1265,7 @@ const tableEnd = `</table>`;
 // Final HTML: two tables when shouldSplit=true; no spacer div needed
 const tablesHtml = shouldSplit
   ? `${tableStart1}<tbody>${part1}</tbody>${tableEnd}
+     <div class="hard-break"></div>
      ${tableStart2}<tbody>${part2}</tbody>${tableEnd}`
   : `${tableStart2}<tbody>${part1}${part2}</tbody>${tableEnd}`;
 
