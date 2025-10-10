@@ -1443,17 +1443,11 @@ const html = `
   margin-left: 10px;
 }
 
-/* --- Desktop-only: pull the 3 action buttons further left --- */
+/* --- Desktop-only: nudge ONLY the 3 action buttons left --- */
 @media screen and (min-width: 1024px) {
-  .topbar {
-    column-gap: 48px !important;   /* was 116px */
-    padding-right: 96px !important;/* was 120px */
-  }
   .topbar .tools {
-    margin-left: -16px !important; /* tweak as needed */
-  }
-  .print-tips {
-    margin-left: 0 !important;
+    position: relative;
+    left: -24px; /* adjust: -8px to -40px depending on how far left you want */
   }
 }
 
