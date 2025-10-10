@@ -1784,64 +1784,70 @@ table.planner tbody {
 
       refreshSummary();
       
-      // --- Visually swap Progress (cell 4) and Adjust (cell 5) only on screen ---
-      // Works by actually swapping the <th>/<td> positions; table layout stays intact.
-      (function addScreenOnlyColumnSwap() {
-        const tables = Array.from(document.querySelectorAll('table.planner'));
+      // --- Visually swap Progress (cell 4) and Adjust (cell 5) on screen,
+//     while preserving each column's own widths by swapping <col> too. ---
+(function addScreenOnlyColumnSwap() {
+  const tables = Array.from(document.querySelectorAll('table.planner'));
 
-        function swapCellsInRow(tr) {
-          // 1-based columns in your markup: 1=Week, 2=Date, 3=Credits, 4=Progress, 5=Adjust
-          // We want Adjust next to Credits on screen: 1,2,3,5,4
-          const cells = Array.from(tr.children);
-          if (cells.length < 5) return;
+  // Swap the 4th (Progress) and 5th (Adjust) cells within a row
+  function swapCellsInRow(tr) {
+    const cells = Array.from(tr.children);
+    if (cells.length < 5) return;
+    const progress = cells[3]; // 4th child
+    const adjust   = cells[4]; // 5th child
+    tr.insertBefore(adjust, progress); // ... Adjust, Progress
+  }
 
-          const progress = cells[3]; // 4th child
-          const adjust   = cells[4]; // 5th child
+  // Swap the 4th and 5th <col> in the colgroup so widths follow the moved columns
+  function swapColgroup(table) {
+    const colgroup = table.querySelector('colgroup');
+    if (!colgroup) return;
+    const cols = colgroup.querySelectorAll('col');
+    if (cols.length < 5) return;
+    const progressCol = cols[3]; // 4th <col>
+    const adjustCol   = cols[4]; // 5th <col>
+    // Move Adjust col before Progress col
+    colgroup.insertBefore(adjustCol, progressCol);
+  }
 
-          // Move Adjust before Progress -> new visual order: ... , Adjust, Progress
-          tr.insertBefore(adjust, progress);
-        }
+  function swapTable(table) {
+    // swap header cells
+    const theadRow = table.tHead && table.tHead.rows[0];
+    if (theadRow) swapCellsInRow(theadRow);
 
-        function swapTable(table) {
-          // swap header row
-          const theadRow = table.tHead && table.tHead.rows[0];
-          if (theadRow) swapCellsInRow(theadRow);
+    // swap body cells
+    Array.from(table.tBodies).forEach(tbody => {
+      Array.from(tbody.rows).forEach(tr => swapCellsInRow(tr));
+    });
 
-          // swap each body row
-          Array.from(table.tBodies).forEach(tbody => {
-            Array.from(tbody.rows).forEach(tr => swapCellsInRow(tr));
-          });
-        }
+    // swap column width definitions to match the new order
+    swapColgroup(table);
+  }
 
-        // Swapping twice restores the original order, so we can just toggle
-        function toggleSwapAll() {
-          tables.forEach(swapTable);
-        }
+  // Swapping twice restores original order (cells + colgroup), so we can toggle.
+  function toggleSwapAll() {
+    tables.forEach(swapTable);
+  }
 
-        // Initial: apply swap for on-screen view
-        toggleSwapAll();
+  // Apply swap for on-screen view now
+  toggleSwapAll();
 
-        // Before print: swap again to restore original order for paper
-        function beforePrint() { toggleSwapAll(); }
-        function afterPrint()  { toggleSwapAll(); } // re-apply for on-screen after printing
+  // Restore original order for print; re-apply after print
+  function beforePrint() { toggleSwapAll(); }
+  function afterPrint()  { toggleSwapAll(); }
 
-        // Cross-browser print hooks
-        if ('onbeforeprint' in window) {
-          window.addEventListener('beforeprint', beforePrint);
-          window.addEventListener('afterprint',  afterPrint);
-        }
+  if ('onbeforeprint' in window) {
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint',  afterPrint);
+  }
 
-        // Fallback for some browsers
-        const mql = window.matchMedia && window.matchMedia('print');
-        if (mql && typeof mql.addEventListener === 'function') {
-          mql.addEventListener('change', e => {
-            if (e.matches) beforePrint(); else afterPrint();
-          });
-        } else if (mql && typeof mql.addListener === 'function') {
-          // legacy
-          mql.addListener(e => { if (e.matches) beforePrint(); else afterPrint(); });
-        }
-      })();
+  const mql = window.matchMedia && window.matchMedia('print');
+  if (mql && typeof mql.addEventListener === 'function') {
+    mql.addEventListener('change', e => { if (e.matches) beforePrint(); else afterPrint(); });
+  } else if (mql && typeof mql.addListener === 'function') {
+    mql.addListener(e => { if (e.matches) beforePrint(); else afterPrint(); }); // legacy
+  }
+})();
 
     })();
   `;
