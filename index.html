@@ -1467,41 +1467,6 @@ const html = `
     display: none !important;
   }
 }
-/* —— Screen-only: visually swap Progress & Adjust so Adjust sits next to Credits —— */
-@media screen {
-  /* Use CSS Grid on header/body rows to remap column positions without changing markup */
-  .planner thead tr,
-  .planner tbody tr {
-    display: grid;
-    /* week | date | credits | adjust | progress */
-    grid-template-columns: 5% 18% 6% 20% 51%;
-    align-items: center;
-  }
-
-  /* Hide colgroup on screen (grid controls widths now) */
-  .planner colgroup { display: none; }
-
-  /* Map original cells to new visual positions */
-  /* 1: Week  -> col 1 */
-  .planner thead tr > *:nth-child(1),
-  .planner tbody tr > *:nth-child(1) { grid-column: 1; }
-
-  /* 2: Date  -> col 2 */
-  .planner thead tr > *:nth-child(2),
-  .planner tbody tr > *:nth-child(2) { grid-column: 2; }
-
-  /* 3: Credits -> col 3 */
-  .planner thead tr > *:nth-child(3),
-  .planner tbody tr > *:nth-child(3) { grid-column: 3; }
-
-  /* 5: Adjust  -> col 4 (moved left of Progress) */
-  .planner thead tr > *:nth-child(5),
-  .planner tbody tr > *:nth-child(5) { grid-column: 4; }
-
-  /* 4: Progress -> col 5 (moved right) */
-  .planner thead tr > *:nth-child(4),
-  .planner tbody tr > *:nth-child(4) { grid-column: 5; }
-}
  /* --- Print overrides --- */
 @media print {
   @page { size: letter portrait; margin: 0.4in; }
@@ -1818,6 +1783,66 @@ table.planner tbody {
       });
 
       refreshSummary();
+      
+      // --- Visually swap Progress (cell 4) and Adjust (cell 5) only on screen ---
+      // Works by actually swapping the <th>/<td> positions; table layout stays intact.
+      (function addScreenOnlyColumnSwap() {
+        const tables = Array.from(document.querySelectorAll('table.planner'));
+
+        function swapCellsInRow(tr) {
+          // 1-based columns in your markup: 1=Week, 2=Date, 3=Credits, 4=Progress, 5=Adjust
+          // We want Adjust next to Credits on screen: 1,2,3,5,4
+          const cells = Array.from(tr.children);
+          if (cells.length < 5) return;
+
+          const progress = cells[3]; // 4th child
+          const adjust   = cells[4]; // 5th child
+
+          // Move Adjust before Progress -> new visual order: ... , Adjust, Progress
+          tr.insertBefore(adjust, progress);
+        }
+
+        function swapTable(table) {
+          // swap header row
+          const theadRow = table.tHead && table.tHead.rows[0];
+          if (theadRow) swapCellsInRow(theadRow);
+
+          // swap each body row
+          Array.from(table.tBodies).forEach(tbody => {
+            Array.from(tbody.rows).forEach(tr => swapCellsInRow(tr));
+          });
+        }
+
+        // Swapping twice restores the original order, so we can just toggle
+        function toggleSwapAll() {
+          tables.forEach(swapTable);
+        }
+
+        // Initial: apply swap for on-screen view
+        toggleSwapAll();
+
+        // Before print: swap again to restore original order for paper
+        function beforePrint() { toggleSwapAll(); }
+        function afterPrint()  { toggleSwapAll(); } // re-apply for on-screen after printing
+
+        // Cross-browser print hooks
+        if ('onbeforeprint' in window) {
+          window.addEventListener('beforeprint', beforePrint);
+          window.addEventListener('afterprint',  afterPrint);
+        }
+
+        // Fallback for some browsers
+        const mql = window.matchMedia && window.matchMedia('print');
+        if (mql && typeof mql.addEventListener === 'function') {
+          mql.addEventListener('change', e => {
+            if (e.matches) beforePrint(); else afterPrint();
+          });
+        } else if (mql && typeof mql.addListener === 'function') {
+          // legacy
+          mql.addListener(e => { if (e.matches) beforePrint(); else afterPrint(); });
+        }
+      })();
+
     })();
   `;
   const scriptEl = printWin.document.createElement('script');
