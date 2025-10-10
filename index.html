@@ -1435,6 +1435,34 @@ const html = `
   margin-left: 10px; /* optional slight spacing for balance */
 }
 
+.print-tips {
+  justify-self: start;
+  align-self: start;
+  max-width: 420px;
+  margin-top: 0;
+  margin-left: 10px;
+}
+
+/* --- Desktop-only: pull the 3 action buttons further left --- */
+@media screen and (min-width: 1024px) {
+  .topbar {
+    column-gap: 48px !important;   /* was 116px */
+    padding-right: 96px !important;/* was 120px */
+  }
+  .topbar .tools {
+    margin-left: -16px !important; /* tweak as needed */
+  }
+  .print-tips {
+    margin-left: 0 !important;
+  }
+}
+
+/* Merge the two tables visually on-screen */
+/* —— Screen-only: merge the two tables and hide headers —— */
+@media screen {
+  /* ... */
+}
+
 .summarywrap { border-color: #d0d0d0; background: #fff; }
 .summarybar .badge { border-color: #bdbdbd; }
   .notes { display: none !important; }
