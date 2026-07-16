@@ -725,6 +725,7 @@ select {
       <button onclick="generatePlan('B')">&#x1F535; Open Plan C</button>
       <button onclick="generatePlan('D')">&#x1F534; Open Plan D</button>
     </div>
+    <button id="reopenPlanBtn" style="display:none;width:100%;margin-top:10px;padding:12px;border:2px dashed #4a90d9;background:#eef4ff;border-radius:8px;color:#1a56a0;font-weight:bold;cursor:pointer;font-size:1em;" onclick="reopenLastPlan()"></button>
     <div class="footer-disclaimer" id="footerDisclaimer">
       <strong>Disclaimer:</strong> This is not an official school document. This calculator is a helpful planning tool, but it's important to double-check your credit totals and the number of weeks you have. If you're not sure, talk with your teacher or school counselor to go over your plan.
     </div>
@@ -3295,6 +3296,37 @@ function generatePlan(type) {
   if (window.__lastPlanUrl) { try { URL.revokeObjectURL(window.__lastPlanUrl); } catch (e) {} }
   window.__lastPlanUrl = planUrl;
   window.open(planUrl, "_blank");
+  // Safari on low-memory Macs purges background tabs INCLUDING this one,
+  // which kills the blob URL above. Keep a copy of the plan in this tab's
+  // sessionStorage (survives Safari's purge-reload; erased when the tab
+  // closes) so the plan can be reopened with one click after a purge.
+  try {
+    sessionStorage.setItem("wccLastPlanHtml", fullHtml);
+    sessionStorage.setItem("wccLastPlanMeta", JSON.stringify({ dp: displayType, ts: Date.now() }));
+  } catch (e) {}
+  updateReopenBtn();
+}
+
+function reopenLastPlan() {
+  try {
+    const html = sessionStorage.getItem("wccLastPlanHtml");
+    if (!html) return;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    if (window.__lastPlanUrl) { try { URL.revokeObjectURL(window.__lastPlanUrl); } catch (e) {} }
+    window.__lastPlanUrl = url;
+    window.open(url, "_blank");
+  } catch (e) {}
+}
+function updateReopenBtn() {
+  const btn = document.getElementById("reopenPlanBtn");
+  if (!btn) return;
+  let meta = null;
+  try { meta = JSON.parse(sessionStorage.getItem("wccLastPlanMeta")); } catch (e) {}
+  if (meta && sessionStorage.getItem("wccLastPlanHtml")) {
+    btn.style.display = "block";
+    btn.textContent = (isSpanish ? "\u21bb Reabrir mi \u00faltimo plan (Plan " : "\u21bb Reopen my last plan (Plan ") + meta.dp + ")";
+  } else btn.style.display = "none";
 }
 
 // =====================================================
@@ -4081,6 +4113,17 @@ function useCreditsInCalculator(credits,startWk,endWk,crossYear,endWkNext){
 // INITIALIZATION
 // =====================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // Safari restores form values AFTER load when it purge-reloads a
+  // backgrounded tab. If a credit total is present, recompute the results
+  // so the page comes back exactly as the user left it, and re-offer the
+  // last generated plan from this tab's session backup.
+  setTimeout(function () {
+    try {
+      var tc = document.getElementById("totalCredits");
+      if (tc && tc.value) calculateCredits();
+      updateReopenBtn();
+    } catch (e) {}
+  }, 400);
   // Initialize with current school year.
   // ORDER MATTERS: populateWeekDropdowns() sets a valid default finish
   // week, and populateCrossYearDropdown() must run before the DE/OP
