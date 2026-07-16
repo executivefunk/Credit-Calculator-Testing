@@ -246,7 +246,6 @@ select {
 
   /* === SHOW PRINT-ONLY ELEMENTS === */
   .print-section-title { display: block !important; }
-  .print-name-line { display: flex !important; }
   .print-running-footer { display: block !important; }
 
   /* === HIDE UNUSED / COLLAPSED SECTIONS === */
@@ -453,11 +452,6 @@ select {
   </div>
 
   <div class="print-page-1">
-    <!-- FERPA-safe blank write-in line (visual only, never captures data) -->
-    <div class="print-name-line">
-      <span class="write-label" id="printNameLabel">Student name:</span>
-      <span class="write-blank" aria-hidden="true"></span>
-    </div>
     <h2>Weekly Credit Calculator</h2>
     <p id="currentDate" style="text-align: center; font-weight: bold; margin-top: -10px;"></p>
     <p id="currentWeek" style="text-align: center; font-size: 1.1em; margin-bottom: 15px;"></p>
@@ -725,7 +719,6 @@ select {
       <button onclick="generatePlan('B')">&#x1F535; Open Plan C</button>
       <button onclick="generatePlan('D')">&#x1F534; Open Plan D</button>
     </div>
-    <button id="reopenPlanBtn" style="display:none;width:100%;margin-top:10px;padding:12px;border:2px dashed #4a90d9;background:#eef4ff;border-radius:8px;color:#1a56a0;font-weight:bold;cursor:pointer;font-size:1em;" onclick="reopenLastPlan()"></button>
     <div class="footer-disclaimer" id="footerDisclaimer">
       <strong>Disclaimer:</strong> This is not an official school document. This calculator is a helpful planning tool, but it's important to double-check your credit totals and the number of weeks you have. If you're not sure, talk with your teacher or school counselor to go over your plan.
     </div>
@@ -2926,6 +2919,7 @@ function generatePlan(type) {
     return { ...w, credits: val };
   });
 
+  const printWin = window.open("", "_blank");
   const maxPerWeek = (type === 'D') ? 4 : 3;
 
   function formatDateForCell(str) {
@@ -2936,8 +2930,8 @@ function generatePlan(type) {
     return '<span class="date-core">' + str + '</span>';
   }
 
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-  const isSmallViewport = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+  const isIOS = /iPhone|iPad|iPod/i.test(printWin.navigator.userAgent || '');
+  const isSmallViewport = printWin.matchMedia && printWin.matchMedia('(max-width: 900px)').matches;
   const shouldSplit = isIOS || isSmallViewport;
   // When a DE or OP class is active, the popup topbar shows an extra
   // "You will be earning X credits from…" notice plus its "Show ..." toggle
@@ -3008,7 +3002,13 @@ function generatePlan(type) {
   });
 
   const tableStart = '<table class="planner"><colgroup><col class="col-week"><col class="col-date"><col class="col-credits"><col class="col-adjust"><col class="col-progress"></colgroup><thead><tr><th class="col-week">Week</th><th class="col-date">Date Range</th><th class="col-credits">Credits</th><th class="col-adjust">Adjust</th><th class="col-progress">Progress</th></tr></thead>';
-  const tableEnd = '</table>';
+  const unofficialLine = (isSpanish
+    ? 'NO ES UN DOCUMENTO OFICIAL DE LA ESCUELA — solo una herramienta de planificación · impreso ' + formatEmailDate()
+    : 'NOT AN OFFICIAL SCHOOL DOCUMENT — planning tool only · printed ' + formatEmailDate());
+  // <tfoot> repeats under the table at the bottom of EVERY printed page,
+  // in normal flow — it reserves its own row of space, so it can never
+  // overlap the plan rows the way a position:fixed footer can.
+  const tableEnd = '<tfoot><tr><td colspan="5" style="border:none;border-top:0.5px solid #ccc;padding:5px 4px 0;text-align:center;font-size:8pt;color:#888;font-weight:normal;">' + unofficialLine + '</td></tr></tfoot></table>';
 
   let chunks = [];
   if (shouldSplit) {
@@ -3083,8 +3083,7 @@ function generatePlan(type) {
   '.print-chunk:first-of-type table.planner thead { display: table-header-group !important; }' +
   '.print-chunk ~ .print-chunk table.planner thead { display: none !important; } }' +
   '.notes { display: none !important; }' +
-  '@media print { @page { size: letter portrait; margin: 0.4in 0.4in 0.65in 0.4in; } body { padding: 0 !important; }' +
-  '.unofficial-runfoot { display:block !important; position: fixed; bottom: 0.18in; left: 0.4in; right: 0.4in; text-align: center; font-size: 8pt; color: #888; border-top: 0.5px solid #ccc; padding-top: 4px; }' +
+  '@media print { @page { size: letter portrait; margin: 0.4in; } body { padding: 0 !important; }' +
   '.topbar, h2 { page-break-before: avoid !important; break-before: avoid !important; page-break-after: avoid !important; break-after: avoid !important; }' +
   '.print-chunk:first-of-type, .print-chunk:first-of-type table.planner { break-before: auto !important; page-break-before: auto !important; margin-top: 0 !important; padding-top: 0 !important; }' +
   'table { line-height: 1.12; } tr, td, th { page-break-inside: avoid !important; break-inside: avoid !important; }' +
@@ -3160,9 +3159,6 @@ function generatePlan(type) {
   '<h2 style="margin-bottom:2px;">Credit Tracker \u2013 Plan ' + displayType + ' (' + yearLabel + (isCrossYear ? ' + ' + nextYearLabel : '') + ')</h2>' +
   '<p style="margin:0 0 2px; font-size:0.85em; color:#555;">(Credit completion is allowed during self-selected "0" credit weeks.)</p>' +
   '<p style="margin:0 0 10px; font-size:0.85em; color:#555;">Plan created on: ' + formatEmailDate() + '</p>' +
-  '<div class="unofficial-runfoot" style="display:none;">' + (isSpanish
-    ? 'NO ES UN DOCUMENTO OFICIAL DE LA ESCUELA — solo una herramienta de planificación · impreso ' + formatEmailDate()
-    : 'NOT AN OFFICIAL SCHOOL DOCUMENT — planning tool only · printed ' + formatEmailDate()) + '</div>' +
   tablesHtml +
   '<p class="notes" style="margin-top:10px; font-size:0.95em; color:#555;">Notes: Skip weeks are locked at 0.' + (isWeek1Partial ? ' Week 1 is a partial week (highlighted in red, starts at 0 credits) \u2014 you may optionally add bonus credits using +/\u2013.' : '') + ' Per-week limit is ' + maxPerWeek + '. The table won\'t let you exceed your total target credits (' + C + ').</p>' +
   '</body></html>';
@@ -3286,47 +3282,8 @@ function generatePlan(type) {
     '<' + 'script>' + behavior + '<' + '/script>' +
     '</body></html>');
 
-  // Blob URL instead of document.write into about:blank: gives the plan tab
-  // a real (memory-only, session-scoped) address, so if the browser discards
-  // the tab to save RAM, reopening/reloading it restores the plan instead of
-  // showing a blank page. Nothing is written to disk; the URL dies with the
-  // session. Keep the latest plan's URL alive; revoke the previous one.
-  const planBlob = new Blob([fullHtml], { type: "text/html" });
-  const planUrl = URL.createObjectURL(planBlob);
-  if (window.__lastPlanUrl) { try { URL.revokeObjectURL(window.__lastPlanUrl); } catch (e) {} }
-  window.__lastPlanUrl = planUrl;
-  window.open(planUrl, "_blank");
-  // Safari on low-memory Macs purges background tabs INCLUDING this one,
-  // which kills the blob URL above. Keep a copy of the plan in this tab's
-  // sessionStorage (survives Safari's purge-reload; erased when the tab
-  // closes) so the plan can be reopened with one click after a purge.
-  try {
-    sessionStorage.setItem("wccLastPlanHtml", fullHtml);
-    sessionStorage.setItem("wccLastPlanMeta", JSON.stringify({ dp: displayType, ts: Date.now() }));
-  } catch (e) {}
-  updateReopenBtn();
-}
-
-function reopenLastPlan() {
-  try {
-    const html = sessionStorage.getItem("wccLastPlanHtml");
-    if (!html) return;
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    if (window.__lastPlanUrl) { try { URL.revokeObjectURL(window.__lastPlanUrl); } catch (e) {} }
-    window.__lastPlanUrl = url;
-    window.open(url, "_blank");
-  } catch (e) {}
-}
-function updateReopenBtn() {
-  const btn = document.getElementById("reopenPlanBtn");
-  if (!btn) return;
-  let meta = null;
-  try { meta = JSON.parse(sessionStorage.getItem("wccLastPlanMeta")); } catch (e) {}
-  if (meta && sessionStorage.getItem("wccLastPlanHtml")) {
-    btn.style.display = "block";
-    btn.textContent = (isSpanish ? "\u21bb Reabrir mi \u00faltimo plan (Plan " : "\u21bb Reopen my last plan (Plan ") + meta.dp + ")";
-  } else btn.style.display = "none";
+  printWin.document.write(fullHtml);
+  printWin.document.close();
 }
 
 // =====================================================
@@ -4113,17 +4070,6 @@ function useCreditsInCalculator(credits,startWk,endWk,crossYear,endWkNext){
 // INITIALIZATION
 // =====================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Safari restores form values AFTER load when it purge-reloads a
-  // backgrounded tab. If a credit total is present, recompute the results
-  // so the page comes back exactly as the user left it, and re-offer the
-  // last generated plan from this tab's session backup.
-  setTimeout(function () {
-    try {
-      var tc = document.getElementById("totalCredits");
-      if (tc && tc.value) calculateCredits();
-      updateReopenBtn();
-    } catch (e) {}
-  }, 400);
   // Initialize with current school year.
   // ORDER MATTERS: populateWeekDropdowns() sets a valid default finish
   // week, and populateCrossYearDropdown() must run before the DE/OP
